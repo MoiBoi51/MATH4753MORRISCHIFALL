@@ -1,0 +1,127 @@
+---
+title: "Lab 2"
+author: "Morris Chi"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: yes
+    toc_float: yes
+    theme: spacelab
+    highlight: pygments
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+## Task 1
+
+```{R}
+getwd()
+
+```
+
+
+## Task 2
+
+```{R}
+EPAGAS = read.csv("EPAGAS.csv")
+head(EPAGAS)
+
+```
+
+
+## Task 3
+
+
+```{R}
+mpg = EPAGAS$MPG
+head(mpg)
+```
+
+
+
+
+mpg to z
+
+```{R}
+z = (mpg - mean(mpg)) / sd(mpg)
+head(z)
+print(paste0("mean = ", round(mean(z), digits = 4)))
+print(paste0("variance = ", var(z)))
+print(paste0("standard deviation = ", sd(z)))
+```
+
+
+
+```{R}
+mpg[abs(z) >= 2 & abs(z) <= 3]
+```
+
+Values of mpg that are outliers
+
+
+```{R}
+mpg[abs(z) > 3]
+```
+
+Plot of mpg values
+
+```{R}
+mpgcol = ifelse(abs(z) > 3, "red", 
+  ifelse(abs(z) >= 2 & abs(z) <= 3, "blue", "black"))
+
+library(lattice)
+dotplot(mpg, col = mpgcol, main = "Plot of mpg values")
+```
+
+## Task 4
+
+```{R}
+boxplot(mpg, main = "MPG Boxplot", xlab = "MPG", col = "green3", border = "black", horizontal = TRUE, notch = TRUE)
+```
+
+Chebyshev's Theorem
+
+```{R}
+cheb = 2
+k = 2
+cheb - 1 - 1 / (k ^ 2)
+cheb
+```
+
+The exact proportion of data within 2 standard deviations
+
+```{R}
+exacttwo = length(mpg[abs(z) < 2]) / length(mpg)
+exacttwo
+```
+
+
+```{R}
+exactthree = length(mpg[abs(z) < 3]) / length(mpg)
+exactthree
+```
+
+
+Question: Does Chebyshev's theorem agree with the data?  [Yes]
+
+Empirical Rule
+
+```{R}
+empirical = length(mpg[abs(mpg - mean(mpg)) < 2 * sd(mpg)]) / length(mpg)
+empirical
+```
+
+
+Question: How well does it correspond? [Exactly, both are 0.96 or 96%]
+
+Question: Is the Empirical Rule valid in this case? [Yes]
+
+Question: Why? [Because the data set is mound shaped and approximately 90% of the data is within 2 standard deviations]
+
+```{R}
+hist(mpg, main = "Histogram", xlab = "MPG", ylab = "Frequency", col = "skyblue" )
+```

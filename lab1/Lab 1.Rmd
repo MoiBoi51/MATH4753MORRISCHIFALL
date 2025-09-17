@@ -1,0 +1,175 @@
+---
+title: "Lab 1"
+author: "Morris Chi"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: yes
+    toc_float: yes
+    theme: spacelab
+    highlight: pygments
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Task 1
+
+```{R}
+getwd()
+
+```
+
+
+
+## Task 2
+
+```{R}
+ddt <- read.csv("DDT.csv")
+head(ddt)
+```
+
+
+## Task 3
+
+
+Qualitative Variables: River, Species
+
+Quantitative variables: Mile, Length, Weight
+
+There are 3 Species in ddt data set
+
+```{R}
+
+names(ddt)
+
+class(ddt)
+
+summary(ddt)
+
+with(ddt,ddt[order(SPECIES,WEIGHT),])
+
+with(ddt, ddt[WEIGHT>800 & SPECIES=="LMBASS",])
+
+
+with(ddt, ddt[RIVER=="SCM" & DDT>4.0,])
+
+```
+
+
+
+## Task 4
+
+1. 42.8125
+
+2. 376.5461
+
+3. 1, YES
+
+4. 1
+
+```{R}
+mean(ddt$LENGTH)
+
+sd(ddt$WEIGHT)
+
+plot(ddt$LENGTH, ddt$WEIGHT)
+
+v <- 1:20
+last_value <- (v/20)[length(v)]   
+last_value
+```
+
+
+## Task 5
+
+```{R}
+
+river = with(ddt, table(RIVER))
+
+river
+barplot(river,beside=TRUE,col=rainbow(4))
+
+
+spriv=with(ddt,table(SPECIES,RIVER))
+spriv
+barplot(spriv)
+
+```
+
+
+## Task 6
+
+```{R}
+river = with(ddt, table(RIVER))
+
+river
+pie(river,col=1:4)
+
+species = with(ddt, table(SPECIES))
+species
+pie(species,col=1:3)
+```
+
+
+## Task 7
+
+```{R}
+boxplot(ddt$DDT)
+
+boxplot(ddt$WEIGHT)
+
+boxplot(ddt$LENGTH)
+```
+
+
+## Task 8
+
+```{R}
+coplot(WEIGHT~LENGTH|RIVER,data=ddt)
+
+coplot(WEIGHT~DDT|SPECIES,data=ddt)
+```
+
+
+## Task 9
+
+
+BOXPLOT
+```{R}
+library(ggplot2)
+ggplot(ddt, aes(x = SPECIES, y = WEIGHT, fill = RIVER)) +
+  geom_boxplot() +
+  ggtitle("Morris Chi") +
+  xlab("Species") +
+  ylab("Weight") +
+  theme_minimal()
+```
+
+VIOLIN PLOT
+```{R}
+ggplot(ddt, aes(x = RIVER, y = LENGTH, fill = SPECIES)) +
+  geom_violin() +
+  ggtitle("Morris Chi") +
+  xlab("River") +
+  ylab("Length") +
+  theme_minimal()
+```
+
+SCATTERPLOT
+```{R}
+ggplot(ddt, aes(x = WEIGHT, y = LENGTH, color = SPECIES)) +
+  geom_point(size = 2, alpha = 0.7) + 
+  ggtitle("Morris Chi") +
+  xlab("Weight") +
+  ylab("Length") +
+  theme_minimal()
+
+```
+
+
+
+
+
+

@@ -1,0 +1,339 @@
+---
+title: "Assignment 1"
+author: "Morris Chi"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: yes
+    toc_float: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+13/15
+
+I did 14/15 questions   
+
+
+# 1
+
+In class quizzes are 10%, Labs are also 10%, Chapter quizzes are 5%, Project 1 is 3.33%, Project 2 is 6.67%, the Midterm is 20%, Assignments are 15%,
+
+The Final Exam is 30%.
+
+An A in the class is 90 or above
+
+A's are 90 and above, B's are 80 and above, C's are 60s and 70s, D's are 50 and above and F's are anything less than 50. There's no curves
+
+# 2
+
+a. Coplot is below
+
+b. It shows the characteristics of Catfish within the RIVERs FCM, LCM, and SCM
+
+c. Marks each unique mile locations there is
+
+d. Counts how many unique mile locations there are, which is 17
+
+e. There's no fish that match those combinations of RIVER and SPECIES
+
+f.  45
+
+
+```{R}
+ddt = read.csv("DDT-1.csv")
+head(ddt)
+
+ddt$MILE <- as.factor(ddt$MILE)
+
+coplot(LENGTH ~ WEIGHT | RIVER * SPECIES, data = ddt, col = ddt$MILE, pch = 16)
+
+subset_data <- subset(ddt, SPECIES == "CCATFISH" & RIVER == "FCM")
+
+mean_DDT <- mean(subset_data$DDT)
+
+mean_DDT
+
+m=with(ddt, as.numeric(factor(MILE))) 
+length(unique(m)) 
+```
+
+
+# 3
+
+a. Quantitative
+
+b. Quantitative
+
+c. Qualitative
+
+d. Quantitative
+
+e. Qualitative
+
+f. Quantitative
+
+g. Qualitative
+
+# 4
+
+a. Simple Random Sampling, Stratified Random Sampling, Cluster Sampling, Systematic Sampling
+
+b. Simple Random Sampling: The simple way of sampling, where everything has an equal chance to be selected, making it truly random
+
+Stratified Sampling: The population gets split up into smaller groups called strata where the groups are made up of people or things that share common characteristics, and then those smaller groups are each randomly sampled
+
+Cluster Sampling: When the population is too large, sometimes smaller chunks, or "clusters" of the total population is chosen and then either all or only some of
+the cluster is sampled from
+
+Systematic Sampling: Out of the total population, only one every kth object or person is chosen as a sample
+
+# 5
+
+a. i.
+
+   ii. 56.45357
+
+```{R}
+mtbe = read.csv("MTBE.csv")
+
+head(mtbe) 
+dim(mtbe) 
+ind=sample(1:223,5,replace=FALSE) 
+mtbe[ind,]
+
+mtbeo=na.omit(mtbe)
+
+depth=mtbeo[mtbeo$Aquifier=="Bedrock",]$Depth
+
+sd(depth)
+```
+
+```{R}
+mtbe = read.csv("MTBE.csv")
+
+mtbe$Public/ mtbe$BedRock
+
+```
+
+
+# 6
+
+a. i. eq plot is below
+
+   ii. 2
+
+```{R}
+eq = read.csv("earthquake.csv")
+
+ind=sample(1:2929,30,replace=FALSE) 
+mtbe[ind,]
+
+plot(ts(eq$MAG))
+
+median_value <- median(eq$MAG)
+
+median_value
+```
+
+# 7
+
+a. Designed Experiment with Stratified Sample
+
+b. All the fish in the Tennessee River and its tributaries(Flint Creek, Limestone Creek, Spring Creek)
+
+c. Capture Location, Species of Fish
+
+# 8
+
+a. Bar graph
+
+b. Type of Robotic Limbs
+
+c. Legs Only
+
+d. Legs Only: 0.594
+
+Wheels Only: 0.189
+
+Both: 0.075
+
+None: 0.142
+
+e. Pareto diagram below
+
+```{R}
+legs_only <- 63
+wheels_only <- 20
+both <- 8
+none <- 15
+total <- 106
+
+rel_legs_only <- legs_only / total
+rel_wheels_only <- wheels_only / total
+rel_both <- both / total
+rel_none <- none / total
+
+cat("Relative Frequency of Legs Only:", rel_legs_only, "\n")
+cat("Relative Frequency of Wheels Only:", rel_wheels_only, "\n")
+cat("Relative Frequency of Both Legs & Wheels:", rel_both, "\n")
+cat("Relative Frequency of Neither:", rel_none, "\n")
+
+library(qcc)
+
+freq <- c(15, 8, 63, 20)
+names(freq) <- c("None", "Both", "LegsO", "WheelsO")  
+pareto.chart(freq, main = "Pareto Diagram of Social Robot Designs")
+```
+
+# 9
+
+a. Explorer
+
+b. Remote Code Execution
+
+```{R}
+library(ggplot2)
+
+products <- c("Windows", "Explorer", "Office")
+issues <- c(32, 6, 12)
+
+names(issues) <- products
+
+pie(issues, main = "Microsoft Products with Security Issues (2012)", col = c("skyblue", "orange", "lightgreen"))
+
+library(qcc)
+
+repercussions <- c(6, 8, 22, 3, 11)
+names(repercussions) <- c("Denial of Service", "Information Disclosure", "Remote Code Execution", "Spoofing", "Privilege Elevation")
+
+pareto.chart(repercussions, main = "Pareto Diagram of Security Repercussions")
+```
+
+
+
+
+# 10
+
+10% of the modules had defective code
+
+```{R}
+swd = read.csv("SWDEFECTS.csv")
+
+library(plotrix)
+tab=table(swd$defect)
+rtab=tab/sum(tab)
+round(rtab,2)
+pie3D(rtab,labels=list("OK","Defective"),main="pie plot of SWD")
+```
+
+# 11
+
+# 12
+
+(0.784, 2.978) micrometers
+
+```{R}
+roughness <- c(1.72, 2.5, 2.16, 2.13, 1.06, 2.24, 2.31, 2.03, 1.09, 1.4, 2.57, 2.64, 1.26, 2.05, 1.19, 2.13, 1.27, 1.51, 2.41, 1.95)
+
+mean_rough <- mean(roughness)
+sd_rough <- sd(roughness)
+n <- length(roughness)
+
+t_value <- qt(0.975, df = n - 1)  
+
+lower_bound <- mean_rough - t_value * sd_rough
+upper_bound <- mean_rough + t_value * sd_rough
+
+cat("95% Prediction Interval: [", lower_bound, ",", upper_bound, "]\n")
+```
+
+# 13
+
+a. Mean: 12.82, Median: 5, Mode: 4
+
+On average they're finding 12.82 ant species at each site. The most common number of species they find at a site is 4.
+
+The middle number of the data of ant species discovered is 5
+
+b. I would say the median, as the mean is really skewed by some crazy outliers of 49 and 52, and mode might not represent all the locations properly
+
+c. Mean: 40.4, Median: 40, Mode: 40
+
+d. Mean: 128, Median: 26, Mode: 30
+
+e. YES
+
+I don't believe it was necessary to show the work for this question, the majority of it was just counting.
+
+Finding the mean was pretty much just adding it all up and then dividing by the total count, R really wasn't needed to do something like that.
+
+# 14
+
+
+a. Created a histogram
+
+b. Yes, there is evidence of Galaxy Cluster A1775 being a double cluster, as the 
+histogram has 2 distinct peaks, instead of only one, showing that there is indeed 2 different clusters of velocities, or 2 groups of galaxies moving at different velocities.
+
+c. I made the numerical measures below
+
+d. If there is a galaxy velocity of 20,000 km/s, this galaxy is likely to belong to cluster A1775A, as the minimum velocity of A1775B is 21,911, which is greater than 20,000, while the maximum of A1775A is 20,785, which is higher than 20,000. As such, it fits in much better in A1775A than A1775B.
+
+
+```{R}
+galaxy = read.csv("GALAXY2.csv")
+
+# Read the CSV (no header)
+gal_data <- read.csv("GALAXY2.csv", header = FALSE)
+
+# Flatten into a vector, then convert to numeric
+galaxy <- as.numeric(unlist(gal_data))
+
+# Remove any NA (just in case)
+galaxy <- galaxy[!is.na(galaxy)]
+
+# Check
+is.numeric(galaxy)   # should be TRUE
+length(galaxy)       # should be the number of galaxy velocities
+
+
+
+hist(galaxy,
+     breaks = 10,
+     col = "skyblue",
+     border = "white",
+     main = "Velocity Distribution of Galaxy Cluster A1775",
+     xlab = "Velocity (km/s)")
+
+
+
+# Split into two groups
+A1775A <- galaxy[galaxy < 21000]
+A1775B <- galaxy[galaxy >= 21000]
+
+# Descriptive stats for each group
+summary(A1775A)
+cat("Mean A1775A =", mean(A1775A), " SD =", sd(A1775A), "\n")
+
+summary(A1775B)
+cat("Mean A1775B =", mean(A1775B), " SD =", sd(A1775B), "\n")
+
+
+
+```
+
+# 15
+
+```{R}
+library(ggplot2)
+ggplot(ddt, aes(x = RIVER, y = LENGTH, fill = SPECIES)) +
+  geom_boxplot() +
+  ggtitle("Morris Chi") +
+  xlab("Species") +
+  ylab("Weight") +
+  theme_minimal()
+```

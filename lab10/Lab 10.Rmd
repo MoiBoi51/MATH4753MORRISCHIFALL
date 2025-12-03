@@ -1,0 +1,339 @@
+---
+title: "Lab 10"
+author: "Morris Chi"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: yes
+    toc_float: yes
+    theme: spacelab
+    highlight: pygments
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Task 1
+
+```{R}
+getwd()
+```
+
+
+# Task 2
+
+A: Makes a matrix of every value in x paired with every value in param
+B: Finds the index of the perimeter that maximizes the log likelihood
+
+L(p)=i=1∏8Bin(yi;n=20,p)
+
+y = c(3, 3, 4, 3, 4, 5, 5, 4)
+
+llik_binom = Vectorize(function(p) {
+  if (p <= 0 || p >= 1) return(-Inf)
+  sum(dbinom(y, size = 20, prob = p, log = TRUE))
+})
+
+
+
+```{R}
+myNRML = function(x0, delta=0.001, llik, xrange, parameter="param") {
+  f = function(x) (llik(x + delta) - llik(x)) / delta
+  fdash = function(x) (f(x + delta) - f(x)) / delta
+  d = 1000
+  i = 0
+  x = c()
+  y = c()
+  x[1] = x0
+  y[1] = f(x[1])
+  while (d > delta & i < 100) {
+    i = i + 1
+    x[i + 1] = x[i] - f(x[i]) / fdash(x[i])
+    y[i + 1] = f(x[i + 1])
+    d = abs(y[i + 1])
+  }
+  layout(matrix(1:2, nr=1, nc=2, byrow=TRUE), width=c(1, 2))
+  curve(llik(x), xlim=xrange, xlab=parameter, ylab="log Lik", main="Log Lik")
+  curve(f(x), xlim=xrange, xaxt="n", xlab=parameter, ylab="derivative", main="Newton-Raphson Algorithm\non the derivative")
+  points(x, y, col="Red", pch=19, cex=1.5)
+  axis(1, x, round(x, 2), las=2)
+  abline(h=0, col="Red")
+  segments(x[1:(i-1)], y[1:(i-1)], x[2:i], rep(0, i-1), col="Blue", lwd=2)
+  segments(x[2:i], rep(0, i-1), x[2:i], y[2:i], lwd=0.5, col="Green")
+  list(x = x, y = y)
+}
+
+y = c(3, 3, 4, 3, 4, 5, 5, 4)
+
+llik_binom = Vectorize(function(p) {
+  if (p <= 0 || p >= 1) return(-Inf)
+  sum(dbinom(y, size=20, prob=p, log=TRUE))
+})
+
+myNRML(x0=0.5, delta=0.000001, llik=llik_binom, xrange=c(0.01, 0.99), parameter="p")
+```
+
+
+
+# Task 3
+
+ℓ(λ)=−nλ+(∑yi​)log(λ)−∑log(yi​!)
+
+```{R}
+mymaxlik = function(lfun, x, param, ...) {
+  np = length(param)
+  z = outer(x, param, lfun)
+  y = apply(z, 2, sum)
+  plot(param, y, col="Blue", type="l", lwd=2, ...)
+  i = max(which(y == max(y)))
+  abline(v = param[i], lwd=2, col="Red")
+  points(param[i], y[i], pch=19, cex=1.5, col="Black")
+  axis(3, param[i], round(param[i], 2))
+  ifelse(i-3 >= 1 & i+2 <= np, 
+         slope <- (y[(i-2):(i+2)] - y[(i-3):(i+1)]) / (param[(i-2):(i+2)] - param[(i-3):(i+1)]),
+         slope <- "NA")
+  return(list(i = i, parami = param[i], yi = y[i], slope = slope))
+}
+
+lfun_pois = function(x, lambda) {
+  dpois(x, lambda, log = TRUE)
+}
+
+y = c(4, 6, 7, 6, 5)
+
+mymaxlik(
+  lfun = lfun_pois,
+  x = y,
+  param = seq(0.1, 15, length = 100),
+  xlab = expression(lambda),
+  ylab = "Log Likelihood",
+  main = "Graphical MLE for Poisson Rate (lambda)"
+)
+
+
+
+
+llik_pois = function(lambda) {
+  
+  y = c(4, 6, 7, 6, 5)
+  n = length(y)
+  sum_y = sum(y)
+  
+  -n * lambda + sum_y * log(lambda) - sum(lfactorial(y))
+}
+
+myNRML = function(x0, delta = 0.001, llik, xrange, parameter = "lambda") {
+  f = function(x) (llik(x + delta) - llik(x)) / delta
+  fdash = function(x) (f(x + delta) - f(x)) / delta
+  d = 1000
+  i = 0
+  x = c()
+  y = c()
+  x[1] = x0
+  y[1] = f(x[1])
+  
+  while (d > delta & i < 100) {
+    i = i + 1
+    x[i + 1] = x[i] - f(x[i]) / fdash(x[i])
+    y[i + 1] = f(x[i + 1])
+    d = abs(y[i + 1])
+  }
+  
+  layout(matrix(1:2, nr = 1, nc = 2, byrow = TRUE), width = c(1, 2))
+  curve(llik(x), xlim = xrange, xlab = parameter, ylab = "Log Lik", main = "Log Lik")
+  curve(f(x), xlim = xrange, xaxt = "n", xlab = parameter, ylab = "Derivative", main = "Newton-Raphson Algorithm on Derivative")
+  points(x, y, col = "Red", pch = 19, cex = 1.5)
+  axis(1, x, round(x, 2), las = 2)
+  abline(h = 0, col = "Red")
+  segments(x[1:(i - 1)], y[1:(i - 1)], x[2:i], rep(0, i - 1), col = "Blue", lwd = 2)
+  segments(x[2:i], rep(0, i - 1), x[2:i], y[2:i], lwd = 0.5, col = "Green")
+  
+  list(x = x, y = y)
+}
+
+myNRML(x0 = 2, delta = 0.000001, llik = llik_pois, xrange = c(0.1, 10), parameter = "lambda")
+
+```
+
+
+
+# Task 4
+
+```{R}
+mymaxlikg = function(lfun, x, param, ...) {
+  np = length(param)
+ 
+  z = outer(param, x, FUN = function(p, y) lfun(p, y))
+  
+  y = apply(z, 1, sum)
+  
+  plot(param, y, col="Blue", type="l", lwd=2, ...)
+  
+
+  i = which.max(y)
+  
+  abline(v = param[i], lwd=2, col="Red")
+  points(param[i], y[i], pch=19, cex=1.5, col="Black")
+  axis(3, param[i], round(param[i], 2))
+  
+  return(list(i = i, parami = param[i], yi = y[i]))
+}
+
+llik_binom = function(p, y) {
+ 
+  n1 = 6; x1 = y[1]
+  n2 = 10; x2 = y[2]
+  
+  log_likelihood = x1 * log(p) + (n1 - x1) * log(1 - p) + x2 * log(p) + (n2 - x2) * log(1 - p)
+  return(log_likelihood)
+}
+
+y = c(2, 4)  
+
+param = seq(0.01, 0.99, length = 100)
+
+mymaxlikg(lfun = llik_binom, x = y, param = param, 
+          xlab = expression(p), ylab = "Log Likelihood", main = "Graphical MLE for p")
+```
+
+
+
+# Task 5
+
+l(θ1,θ2)=y1logθ1+(n1−y1)log(1−θ1)+y2logθ2−θ2
+
+```{R}
+llik_combined <- function(theta) {
+  theta1 <- theta[1]
+  theta2 <- theta[2]
+  
+  y1 <- 4 
+  n <- 20  
+  y2 <- 4 
+  
+  loglik <- y1 * log(theta1) + (n - y1) * log(1 - theta1) + y2 * log(theta2) - theta2
+  
+  return(-loglik)  
+}
+
+maxlikg2 <- function() {
+
+  initial_guess <- c(0.2, 2)  
+  
+  result <- optim(initial_guess, llik_combined, method = "BFGS", hessian = TRUE)
+  
+  theta1_mle <- result$par[1]
+  theta2_mle <- result$par[2]
+  
+  cat("Maximum Likelihood Estimate for θ1:", theta1_mle, "\n")
+  cat("Maximum Likelihood Estimate for θ2:", theta2_mle, "\n")
+  
+  theta1_vals <- seq(0.01, 1, by = 0.01)
+  theta2_vals <- seq(0.1, 10, by = 0.1)
+  likelihood_vals <- outer(theta1_vals, theta2_vals, Vectorize(function(t1, t2) {
+    -llik_combined(c(t1, t2))
+  }))
+  
+  contour(theta1_vals, theta2_vals, likelihood_vals, xlab = "θ1", ylab = "θ2", main = "Log-Likelihood Surface")
+  points(theta1_mle, theta2_mle, col = "red", pch = 19)
+  
+  return(result)
+}
+
+maxlikg2()
+```
+
+
+
+# Task 6
+
+```{R}
+llik_norm <- function(params, data) {
+  mu <- params[1]
+  sigma <- params[2]
+  
+  n <- length(data)
+  
+  loglik <- -n/2 * log(2 * pi * sigma^2) - sum((data - mu)^2) / (2 * sigma^2)
+  
+  return(-loglik)
+}
+
+mymlnorm <- function(data) {
+  initial_guess <- c(mean(data), sd(data))
+  
+  result <- optim(initial_guess, llik_norm, data = data, method = "BFGS")
+  
+  mu_mle <- result$par[1]
+  sigma_mle <- result$par[2]
+
+  cat("Maximum Likelihood Estimate for mu:", mu_mle, "\n")
+  cat("Maximum Likelihood Estimate for sigma:", sigma_mle, "\n")
+
+  mu_vals <- seq(min(data) - 1, max(data) + 1, length.out = 100)
+  sigma_vals <- seq(0.1, 5, length.out = 100)
+  
+  loglik_vals <- outer(mu_vals, sigma_vals, Vectorize(function(mu, sigma) {
+    -llik_norm(c(mu, sigma), data)
+  }))
+  
+  contour(mu_vals, sigma_vals, loglik_vals, xlab = "mu", ylab = "sigma", main = "Log-Likelihood Surface")
+  points(mu_mle, sigma_mle, col = "red", pch = 19)
+  
+  return(result)
+}
+
+data <- c(10, 12, 13, 15, 12, 11, 10)
+
+mymlnorm(data)
+```
+
+
+
+# Task 7
+
+```{R}
+mymlbeta = function(xrange = c(0.01, 5), yrange = c(0.01, 10), data) {
+  llik = function(a, b) sum(dbeta(data, shape1 = a, shape2 = b, log = TRUE))
+  x = seq(xrange[1], xrange[2], len = 101)
+  y = seq(yrange[1], yrange[2], len = 101)
+  z = outer(x, y, Vectorize(function(a, b) llik(a, b)))
+  persp(x, y, z, theta = -30, phi = 30, expand = 0.6,
+        col = "lightblue", ticktype = "detailed", 
+        xlab = "Shape 1", ylab = "Shape 2", zlab = "Log-Likelihood")
+}
+
+set.seed(123)
+sam = rbeta(30, shape1 = 3, shape2 = 4)
+num_resamples = 12
+estimates = matrix(0, nrow = num_resamples, ncol = 2)
+
+for (i in 1:num_resamples) {
+  samp = sample(sam, size = 30, replace = TRUE)
+  negloglik = function(par) -sum(dbeta(samp, shape1 = par[1], shape2 = par[2], log = TRUE))
+  result = optim(par = c(1, 1), fn = negloglik, method = "L-BFGS-B", lower = c(0.01, 0.01))
+  estimates[i, ] = result$par
+}
+
+dev.new(width = 12, height = 8)
+par(mfrow = c(3, 4), mar = c(3, 3, 2, 1))
+
+for (i in 1:num_resamples) {
+  plot(estimates[i, ], type = "b", pch = 19, col = "blue", ylim = c(0, 6),
+       main = paste("Resample", i), xlab = "", ylab = "", xaxt = "n")
+  axis(1, at = 1:2, labels = c("Shape1", "Shape2"))
+}
+
+plot(1:num_resamples, abs(estimates[,1] - 3), type = "b", col = "red", pch = 19,
+     ylim = c(0, 3), main = "Distance from true Shape1", xlab = "Sample", ylab = "Distance")
+plot(1:num_resamples, abs(estimates[,2] - 4), type = "b", col = "blue", pch = 19,
+     ylim = c(0, 3), main = "Distance from true Shape2", xlab = "Sample", ylab = "Distance")
+
+
+```
+
+
+# Task 8
+

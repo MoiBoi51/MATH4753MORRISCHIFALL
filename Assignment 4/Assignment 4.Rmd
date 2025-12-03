@@ -1,0 +1,431 @@
+---
+title: "Assignment 4"
+author: "Morris Chi"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: yes
+    toc_float: yes
+    theme: spacelab
+    highlight: pygments
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+10/10
+
+# Task 1
+
+a. See first output of samp
+
+b. ( -473.4889, 31884.4032)
+
+c. It is 95% confident that the true mean body mass of New Zealand bird species lies between these two values of the confidence interval
+
+d. The true mean is contained in the interval. Since the true mean is inside the interval, the interval is very likely to contain the true mean
+
+e. (48.97670, 87.79473)
+
+It is 95% confident that the true mean of egg lengths of New Zealand bird species is in between these two values of the confidence interval
+
+The true mean, 61.06, is contained inside this interval. Since its inside in this interval, it is very likely to contain the true mean.
+
+f. (0.2925443, 0.6332317)
+
+g. Yes, it does, because the interval is completely positive, meaning there is a larger proportion of extinct species having flightless birds than nonextinct species.
+
+
+
+```{R}
+birds <- read.csv("NZBIRDS.csv")
+
+
+set.seed(123)              
+
+samp_index <- sample(1:nrow(birds), size = 35, replace = FALSE)
+samp <- birds[samp_index, ]
+
+samp
+
+
+
+set.seed(123)
+samp_index <- sample(1:nrow(birds), 35)
+samp <- birds[samp_index, ]
+
+
+
+xbar_mass <- mean(samp$Body.Mass)
+s_mass <- sd(samp$Body.Mass)
+n <- 35
+
+error <- qt(0.975, df = n - 1) * s_mass / sqrt(n)
+CI_mass <- c(xbar_mass - error, xbar_mass + error)
+CI_mass
+
+
+mu_mass <- mean(birds$Body.Mass)
+mu_mass
+
+CI_mass[1] <= mu_mass & mu_mass <= CI_mass[2]
+
+
+
+
+
+
+
+xbar_egg <- mean(samp$Egg.Length)
+s_egg <- sd(samp$Egg.Length)
+
+
+error_egg <- qt(0.975, df = n - 1) * s_egg / sqrt(n)
+CI_egg <- c(xbar_egg - error_egg, xbar_egg + error_egg)
+CI_egg
+
+
+
+mu_egg <- mean(birds$Egg.Length)
+CI_egg[1] <= mu_egg & mu_egg <= CI_egg[2]
+
+
+```
+
+
+
+```{R}
+
+n_extinct <- 38
+flightless_extinct <- 21
+
+n_nonextinct <- 78
+flightless_nonextinct <- 7
+
+
+p1 <- flightless_extinct / n_extinct
+p2 <- flightless_nonextinct / n_nonextinct
+
+
+diff_p <- p1 - p2
+
+
+SE <- sqrt( (p1 * (1 - p1) / n_extinct) + (p2 * (1 - p2) / n_nonextinct) )
+
+
+z <- 1.96
+CI_lower <- diff_p - z * SE
+CI_upper <- diff_p + z * SE
+
+
+diff_p
+CI_lower
+CI_upper
+```
+
+
+# Task 2
+
+a. -135.78 to 55.78 psi
+
+b. 1.566 to 3.618  Yes because the interval is greater than 1, so there is evidence that the stress variance for Southern Pine is greater than Ponderosa Pine
+
+```{R}
+n1 <- 100
+mean1 <- 1312
+sd1 <- 422
+
+n2 <- 47
+mean2 <- 1352
+sd2 <- 271
+
+diff_means <- mean1 - mean2
+se_diff <- sqrt(sd1^2 / n1 + sd2^2 / n2)
+
+
+df <- ( (sd1^2 / n1 + sd2^2 / n2)^2 ) /
+      ( ((sd1^2 / n1)^2) / (n1 - 1) + ((sd2^2 / n2)^2) / (n2 - 1) )
+
+alpha <- 0.10
+t_crit <- qt(1 - alpha/2, df)
+
+lower_diff <- diff_means - t_crit * se_diff
+upper_diff <- diff_means + t_crit * se_diff
+
+cat("Part (a): 90% Confidence Interval for the Difference in Mean Shear Strengths:\n")
+cat(round(lower_diff, 2), "to", round(upper_diff, 2), "psi\n\n")
+
+
+var_ratio <- (sd1^2) / (sd2^2)
+
+f_lower <- qf(alpha/2, df1 = n1 - 1, df2 = n2 - 1)
+f_upper <- qf(1 - alpha/2, df1 = n1 - 1, df2 = n2 - 1)
+
+ci_var_lower <- var_ratio / f_upper
+ci_var_upper <- var_ratio / f_lower
+
+cat("Part (b): 90% Confidence Interval for the Ratio of Variances (Southern / Ponderosa):\n")
+cat(round(ci_var_lower, 3), "to", round(ci_var_upper, 3), "\n")
+
+if(ci_var_lower > 1 || ci_var_upper < 1) {
+  cat("Conclusion: There is evidence that the variances differ.\n")
+} else {
+  cat("Conclusion: There is no evidence that the variances differ.\n")
+}
+```
+
+
+
+# Task 3
+
+a. 1. Z = y/σ
+2. Since y ~ N(0, σ^2), then Z ~ N(0, 1)
+3. From Theorem 6.11, if Z ~ N(0, 1), then Z^2 ~ X'21
+4. So y^2/σ^2 = Z^2 ~ X'21
+So Y^2/σ^2 has a chi-square distribution with a single degree of freedom
+
+b. (3.5112, 17962.08)
+
+
+```{R}
+y <- 4.2  
+
+alpha <- 0.05
+chi_sq_lower <- qchisq(1 - alpha / 2, df = 1)  
+chi_sq_upper <- qchisq(alpha / 2, df = 1)      
+
+lower_bound <- y^2 / chi_sq_lower
+upper_bound <- y^2 / chi_sq_upper
+
+cat("95% Confidence Interval for sigma^2:\n")
+cat("(", round(lower_bound, 4), ",", round(upper_bound, 4), ")\n")
+```
+
+
+# Task 4
+
+a. The hypotheses are:
+  H(0): μ = 2  (the mean surface roughness is 2 μm)
+  
+  H(a) : μ ≠ 2  (the mean surface roughness is different from 2 μm)
+
+Which makes this a two-tailed test
+
+
+b. Test statistic (T) = -1.02
+   p-value = 0.322
+
+
+c. The rejection region is t < -2.093 or t > 2.093
+
+
+d. At 𝛼= 0.05, the test statistic -1.02 is not within the rejection range, and the p-value is greater than 𝛼, which both of these means that there isn't enough evidence to reject H(0).
+
+So, at the 5% significance level, there isn't enough evidence to conclude that the mean surface roughness of the coated interior pipe differs form 2 micrometers.
+
+
+e. The 95% confidence interval is (1.6358, 2.1262), and the value 𝜇(0) = 2 is inside the interval, which makes it a plausible value, so the hypothesis test still fails to reject H(0).
+
+
+
+```{R}
+n <- 20
+
+alpha <- 0.05
+
+
+df <- n - 1
+
+
+t_crit <- qt(c(alpha/2, 1 - alpha/2), df)
+t_crit
+```
+
+# Task 5
+
+a. Because the p-value (0.8535) is much greater than the significance level (α = 0.10), it fails to reject the null hypothesis.
+
+Therefore, there isn't enough evidence to conclue that the mean in the sample of the 25 lakes differs from the population mean of 15g/m^3. So, the sample is representative of Wisconsin lakes with respect to the dissolved organic compounds.
+
+
+b. It is not very likely, as the likelihood this test would correctly detect a difference is only 12%.
+
+As such, the test has a high chance of failing, because it isn't very sensitive with a small effect size and a small sample size.
+
+
+
+```{R}
+DOC <- c(9.6, 4.5, 13.2, 4.1, 22.6, 2.7, 14.7, 3.5, 13.6, 19.8,
+         14.3, 56.9, 25.1, 18.4, 2.7, 4.2, 30.2, 10.3, 17.6, 2.4,
+         17.3, 38.8, 3.0, 5.8, 7.6)
+
+n <- length(DOC)
+sample_mean <- mean(DOC)
+sample_sd <- sd(DOC)
+
+sample_mean
+sample_sd
+
+
+mu0 <- 15
+t_stat <- (sample_mean - mu0) / (sample_sd / sqrt(n))
+t_stat
+
+alpha <- 0.10
+t_crit <- qt(1 - alpha/2, df = n-1)
+t_crit
+
+t.test(DOC, mu = 15, conf.level = 0.90)
+
+
+
+library(pwr)
+pwr.t.test(n = n, d = (14 - 15)/sample_sd, sig.level = 0.10, type = "one.sample", alternative = "two.sided")
+```
+
+
+# Task 6
+
+Fails to reject Null Hypothesis. There isn't enough evidence to conclude that the ratios differ.
+
+```{R}
+fog <- c(.270, .241, .205, .523, .112, .330, .270, .239)
+clear_cloudy <- c(.618, .591, .225, .375)
+
+length(fog)
+length(clear_cloudy)
+
+
+t.test(fog, clear_cloudy, alternative = "two.sided", var.equal = FALSE)
+```
+
+# Task 7
+
+a. No, there isn't sufficient evidence of a difference between Traditional and Aeroderiv, as the p-value was greater than 0.05, meaning it fails to reject H(0)
+
+b. Yes, there is sufficient evidence of a difference between Advanced and Aeroderiv, as the p-value is below 0.05, meaning it rejects H(0) and accepts H(a)
+
+
+
+```{R}
+gas <- read.csv("GASTURBINE.csv")
+
+
+traditional <- gas$HEATRATE[gas$ENGINE == "Traditional"]
+advanced    <- gas$HEATRATE[gas$ENGINE == "Advanced"]
+aeroderiv   <- gas$HEATRATE[gas$ENGINE == "Aeroderiv"]
+
+
+var.test(traditional, aeroderiv)
+
+
+
+var.test(advanced, aeroderiv)
+
+
+t.test(traditional, aeroderiv, var.equal = TRUE)
+t.test(advanced, aeroderiv, var.equal = TRUE)
+
+```
+
+
+# Task 8
+
+a.  The populations are 
+  Site 1 (Dry Steppe): σ(2/1)
+  Site 2 (Gobi Desert): σ(2/2)
+  
+  The hypotheses are:
+  
+  H(0): σ(2/1) = σ(2/2)  (variances are equal)
+  H(a): σ(2/1) ≠ σ(2/2)  (variances are different)
+
+b. F = 1.3684
+
+c.  Rejection Region is F < 0.1852264 and F > 12.8146380, and F is inside the range
+
+d. 0.7264
+
+e. There isn't enough evidence to say that the variances in ant counts differ between the Dry Steppes and the Gobi Desert, but the data is consistent with equal variances.
+
+f. Samples should be independent, Populations should be approximately normal, Each site should be randomly sampled
+
+
+
+```{R}
+dry_steppe <- c(3, 3, 52, 7, 5)
+gobi_desert <- c(49, 5, 4, 4, 5, 4)
+
+
+var.test(dry_steppe, gobi_desert)
+```
+
+
+# Task 9
+
+Null hypothesis is rejected, throughput differs between human and automated, and the negative mean difference says that the automated method has a higher throughput on average
+
+```{R}
+human <- c(185.4, 146.3, 174.4, 184.9, 240.0, 253.8, 238.8, 263.5)
+auto  <- c(180.4, 248.5, 185.5, 216.4, 269.3, 249.6, 282.0, 315.9)
+
+t.test(human, auto, paired = TRUE, alternative = "two.sided")
+```
+
+
+# Task 10
+
+```{R}
+set.seed(35)
+
+sam <- round(rnorm(30, mean = 20, sd = 3), 3)
+print(sam)  
+
+myboot <- function(iter = 10000, x, fun = mean, alpha = 0.05, ...) {
+  
+  fun <- match.fun(fun)
+  
+  n <- length(x)   
+
+  y <- sample(x, n * iter, replace = TRUE)
+  rs.mat <- matrix(y, nr = n, nc = iter, byrow = TRUE)  
+  
+  xstat <- apply(rs.mat, 2, fun)
+  
+  ci <- quantile(xstat, c(alpha / 2, 1 - alpha / 2))
+  
+  xbar <- mean(x)
+  s <- sd(x)
+  error <- qt(1 - alpha / 2, df = n - 1) * s / sqrt(n)
+  cit <- c(xbar - error, xbar + error)
+  
+  para <- hist(xstat, freq = FALSE, las = 1,
+               main = paste("Histogram of Bootstrap sample statistics\nalpha =", alpha, " iter =", iter),
+               xlab = deparse(substitute(fun)), ...)
+  
+  segments(ci[1], 0, ci[2], 0, col = "red", lwd = 4)
+  text(ci[1], 0, paste("(", round(ci[1], 2)), col = "red", cex = 1.5, pos = 3)
+  text(ci[2], 0, paste(round(ci[2], 2), ")"), col = "red", cex = 1.5, pos = 3)
+  
+  segments(cit[1], 0.01, cit[2], 0.01, col = "blue", lwd = 4)
+  text(cit[1], 0.01, paste("(", round(cit[1], 2)), col = "blue", cex = 1.5, pos = 3)
+  text(cit[2], 0.01, paste(round(cit[2], 2), ")"), col = "blue", cex = 1.5, pos = 3)
+  
+  pte <- fun(x)  
+  abline(v = pte, col = "black", lwd = 3)
+  text(pte, max(para$density) / 2, round(pte, 2), cex = 1.5, col = "black")
+  
+  return(list(
+    fun = deparse(substitute(fun)),
+    x = x,
+    t = qt(1 - alpha / 2, df = n - 1),
+    ci = ci,
+    cit = cit
+  ))
+}
+
+result <- myboot(iter = 10000, x = sam, fun = mean, alpha = 0.05, col = "lightgray")
+
+print(result)
+```

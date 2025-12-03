@@ -1,0 +1,257 @@
+---
+title: "Lab 7"
+author: "Morris Chi"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: yes
+    toc_float: yes
+    theme: spacelab
+    highlight: pygments
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Task 1
+
+```{R}
+getwd()
+```
+
+
+# Task 2
+
+```{R}
+mychisim <- function(n1=10, sigma1=3, mean1=5, iter=1000, ymax=0.1, x=20, y=0.1) {    
+  
+  y1 = rnorm(n1 * iter, mean=mean1, sd=sigma1)
+  
+  data1.mat = matrix(y1, nrow=n1, ncol=iter, byrow=TRUE)
+  
+  ssq1 = apply(data1.mat, 2, var)  
+  
+  w = (n1 - 1) * ssq1 / sigma1^2      
+  
+  hist(w, freq=FALSE, ylim=c(0, ymax),
+       main=substitute(paste("Sample size = ", n[1], " = ", n1, " statistic = ", chi^2)),
+       xlab=expression(paste(chi^2, " Statistic", sep=" ")), las=1)
+  
+  lines(density(w), col="Blue", lwd=3)  
+  curve(dchisq(x, n1-1), add=TRUE, col="Red", lty=2, lwd=3)  
+  
+  title=expression(chi^2 == frac((n[1] - 1) * s^2, sigma^2))  
+  legend(x, y, c("Simulated", "Theoretical"), col=c("Blue", "Red"), lwd=4, lty=1:2, bty="n", title=title)  
+  
+  invisible(list(w=w, summary=summary(w), sd=sd(w), fun="Chi-sq"))  
+}
+
+par(mfrow=c(2,2))  
+
+params <- list(
+  list(n1=10, sigma1=4, mean1=10, iter=1000, ymax=0.15),
+  list(n1=20, sigma1=4, mean1=10, iter=1000, ymax=0.15),
+  list(n1=100, sigma1=4, mean1=10, iter=1000, ymax=0.15),
+  list(n1=200, sigma1=4, mean1=10, iter=1000, ymax=0.15)
+)
+
+for (p in params) {
+  mychisim(n1=p$n1, sigma1=p$sigma1, mean1=p$mean1, iter=p$iter, ymax=p$ymax)
+}
+
+
+chisq <- mychisim(n1=10, sigma1=10, mean1=20, iter=1500, ymax=0.15)
+
+hist(chisq$w, main="Histogram of Chi-Square Values",
+     xlab=expression(chi^2), col="lightblue", border="black", breaks=30)
+```
+
+
+# Task 3
+
+```{R}
+myTsim1 <- function(n1=10, sigma1=3, mean1=5, iter=1000, ymax=0.6, x=2, y=0.3){
+  y1 <- rnorm(n1 * iter, mean=mean1, sd=sigma1) 
+  data1.mat <- matrix(y1, nrow=n1, ncol=iter, byrow=TRUE)
+  sd1 <- apply(data1.mat, 2, sd)
+  ybar <- apply(data1.mat, 2, mean)
+  w <- (ybar - mean1) / (sd1 / sqrt(n1))
+  
+  hist(w, freq=FALSE, ylim=c(0, ymax),
+       main=substitute(paste("Sample size = ", n[1], " = ", n1, " statistic = ", T, " iterations= ", iter)),
+       xlab=expression(paste(T, " Statistic", sep=" ")), las=1)
+  lines(density(w), col="Blue", lwd=3)
+  curve(dt(x, n1-1), add=TRUE, col="Red", lty=2, lwd=3)
+  title=expression(T==frac((bar(y)-mu),s/sqrt(n1)))
+  legend(x, y, c("Simulated", "Theoretical"), col=c("Blue", "Red"), lwd=4, lty=1:2, bty="n", title=title)
+  
+  invisible(list(w=w, summary=summary(w), sd=sd(w), fun="T"))
+}
+
+
+par(mfrow=c(2,2))
+myTsim1(n1=10, iter=1000, mean1=10, sigma1=4, ymax=0.4)
+myTsim1(n1=20, iter=1000, mean1=10, sigma1=4, ymax=0.7)
+myTsim1(n1=100, iter=1000, mean1=10, sigma1=4, ymax=0.7)
+myTsim1(n1=200, iter=1000, mean1=10, sigma1=4, ymax=0.7)
+
+T <- myTsim1(n1=10, iter=1500, mean1=20, sigma1=10)
+hist(T$w, freq=FALSE, main="Histogram of T Statistic", xlab="T values", col="lightblue", border="black")
+```
+
+
+# Task 4
+
+```{R}
+mychisim2 <- function(n1=10, n2=14, sigma1=3, sigma2=3, mean1=5, mean2=10, iter=1000, ymax=0.07, x=40, y=0.04){
+  y1 <- rnorm(n1 * iter, mean=mean1, sd=sigma1)
+  y2 <- rnorm(n2 * iter, mean=mean2, sd=sigma2)
+  data1.mat <- matrix(y1, nrow=n1, ncol=iter, byrow=TRUE)
+  data2.mat <- matrix(y2, nrow=n2, ncol=iter, byrow=TRUE)
+  ssq1 <- apply(data1.mat, 2, var)
+  ssq2 <- apply(data2.mat, 2, var)
+  spsq <- ((n1-1)*ssq1 + (n2-1)*ssq2) / (n1+n2-2)
+  w <- (n1+n2-2) * spsq / (sigma1^2)
+
+  hist(w, freq=FALSE, ylim=c(0, ymax),
+       main=substitute(paste("Sample size = ", n[1]+n[2], " = ", n1+n2, " statistic = ", chi^2)),
+       xlab=expression(paste(chi^2, " Statistic", sep=" ")), las=1)
+  lines(density(w), col="Blue", lwd=3)
+  curve(dchisq(x, n1+n2-2), add=TRUE, col="Red", lty=2, lwd=3)
+  title=expression(chi^2==frac((n[1]+n[2]-2)*S[p]^2,sigma^2))
+  legend(x, y, c("Simulated", "Theoretical"), col=c("Blue", "Red"), lwd=4, lty=1:2, bty="n", title=title)
+
+  invisible(list(w=w, summary=summary(w), sd=sd(w), fun="Chi-sq"))
+}
+
+par(mfrow=c(2,2))
+mychisim2(n1=10, n2=10, mean1=5, mean2=10, sigma1=4, sigma2=4, iter=1000, ymax=0.1)
+mychisim2(n1=20, n2=10, mean1=3, mean2=5, sigma1=10, sigma2=10, iter=1000, ymax=0.07)
+mychisim2(n1=50, n2=50, mean1=5, mean2=10, sigma1=4, sigma2=4, iter=10000, ymax=0.06)
+mychisim2(n1=80, n2=50, mean1=3, mean2=5, sigma1=10, sigma2=10, iter=10000, ymax=0.05)
+
+T <- mychisim2(n1=10, n2=10, mean1=5, mean2=10, sigma1=4, sigma2=4, iter=10000)
+hist(T$w, freq=FALSE, main="Histogram of Chi-Square Statistic", xlab="Chi-Square values", col="lightblue", border="black")
+```
+
+
+# Task 5
+
+w = (ybar - mean1) / (sd1 / sqrt(n1))  # T stat
+
+T = ((Y2 - Y1) - (u2 - u1))/((Sp)(1/n2 + 1/n1)^1/2)
+
+Y is the sample mean of the groups, Y2 the second group, Y1 the first, the mean of all the values
+
+u is the population mean, u2 the second, u1 the first, the true average
+
+Sp is the pooled standard deviation, which is the combination of both the standard deviations of the groups
+
+n is the sample size, how many data points are in the groups, n1 the first, n2 the second
+
+
+```{R}
+myTsim2 <- function(n1=10, n2=14, sigma1=3, sigma2=3, mean1=5, mean2=10, iter=1000, ymax=0.5, x=2, y=0.4, ...) {
+  
+  y1 = rnorm(n1 * iter, mean=mean1, sd=sigma1)  
+  y2 = rnorm(n2 * iter, mean=mean2, sd=sigma2)  
+  
+  data1.mat = matrix(y1, nrow=n1, ncol=iter, byrow=TRUE)  
+  data2.mat = matrix(y2, nrow=n2, ncol=iter, byrow=TRUE)  
+  
+  ssq1 = apply(data1.mat, 2, var)  
+  ybar1 = apply(data1.mat, 2, mean) 
+  
+  ssq2 = apply(data2.mat, 2, var)  
+  ybar2 = apply(data2.mat, 2, mean)  
+  
+  spsq = ((n1 - 1) * ssq1 + (n2 - 1) * ssq2) / (n1 + n2 - 2)  
+  
+  w = ((ybar1 - ybar2) - (mean1 - mean2)) / sqrt(spsq * (1 / n1 + 1 / n2))  
+  
+  hist(w, freq=FALSE, ylim=c(0, ymax),
+       main=substitute(paste("Sample size = ", n[1] + n[2], " = ", n1 + n2, " statistic = ", T)),
+       xlab=paste(" T Statistic", sep=""), las=1)
+  
+  lines(density(w), col="Blue", lwd=3)  
+
+  curve(dt(x, n1 + n2 - 2), add=TRUE, col="Red", lty=2, lwd=3)  
+  
+  title = expression(T == frac((bar(Y)[1] - bar(Y)[2]) - (mu[1] - mu[2]), S[p] * sqrt(frac(1, n[1]) + frac(1, n[2]))))
+  
+  legend(x, y, c("Simulated", "Theoretical"), col=c("Blue", "Red"), lwd=4, lty=1:2, bty="n", title=title)
+  
+  invisible(list(w=w, summary=summary(w), sdw=sd(w), fun="T"))
+}
+
+par(mfrow=c(2, 3))  
+
+myTsim2(n1=10, n2=10, mean1=5, mean2=10, sigma1=4, sigma2=4, iter=1000)
+
+myTsim2(n1=20, n2=10, mean1=3, mean2=5, sigma1=10, sigma2=10, iter=1000)
+
+myTsim2(n1=50, n2=50, mean1=5, mean2=10, sigma1=4, sigma2=4, iter=10000)
+
+myTsim2(n1=80, n2=50, mean1=3, mean2=5, sigma1=10, sigma2=10, iter=10000)
+
+myTsim2(iter=10000, ymax=0.5)  
+```
+
+# Task 6
+
+F = ((s1/2)/(s2/2))((a2/2)/(a1/2))
+
+It assumes that the populations are normally distributed, independent of eachother, and equal
+
+```{R}
+myFsim2 <- function(n1 = 10, n2 = 14, sigma1 = 3, sigma2 = 2, mean1 = 5, mean2 = 10, iter = 1000, ymax = 0.9, x = 6, y = 0.5) {
+  y1 = rnorm(n1 * iter, mean = mean1, sd = sigma1)  
+  y2 = rnorm(n2 * iter, mean = mean2, sd = sigma2)
+  
+  data1.mat = matrix(y1, nrow = n1, ncol = iter, byrow = TRUE)  
+  data2.mat = matrix(y2, nrow = n2, ncol = iter, byrow = TRUE)
+  
+  ssq1 = apply(data1.mat, 2, var)   
+  ssq2 = apply(data2.mat, 2, var)  
+  
+  
+  w = ssq1 / ssq2
+  
+  hist(w, freq = FALSE, ylim = c(0, ymax),  
+       main = substitute(paste("Sample size = ", n[1] + n[2], " = ", n1 + n2, " statistic = ", F)),
+       xlab = paste("F Statistic", sep = ""), las = 1)
+  
+  lines(density(w), col = "Blue", lwd = 3)  
+  curve(df(x, n1 - 1, n2 - 1), xlim = c(0, 6), add = TRUE, col = "Red", lty = 2, lwd = 3)   
+  
+  title = expression(F == frac(s[1]^2, s[2]^2))  
+  
+  
+  legend(x, y, c("Simulated", "Theoretical"), col = c("Blue", "Red"), lwd = 4, lty = 1:2, bty = "n", title = title)
+  
+  invisible(list(w = w, summary = summary(w), sd = sd(w), fun = "F"))  
+}
+
+myFsim2(iter = 10000)
+
+par(mfrow=c(2,2))  
+
+myFsim2(iter=1000)
+
+myFsim2(n1=20, n2=30, iter=1000)
+
+myFsim2(sigma1=5, sigma2=1, iter=1000)
+
+myFsim2(mean1=7, mean2=15, iter=1000)
+```
+
+
+# Task 7
+
+```{R}
+library(MATH4753MORRISCHIFALL)
+data("fire")
+knitr::kable(head(fire))
+```

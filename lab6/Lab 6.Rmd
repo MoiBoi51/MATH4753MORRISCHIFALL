@@ -1,0 +1,269 @@
+---
+title: "Lab 6"
+author: "Morris Chi"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: yes
+    toc_float: yes
+    theme: spacelab
+    highlight: pygments
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Task 1
+
+```{R}
+getwd()
+```
+
+# Task 2
+
+(USE CURVE)
+
+```{R}
+layout(matrix(1:4, 2, 2))
+
+curve(dnorm(x, mean=10, sd=4), from=0, to=20, col="red", lwd=2, 
+      main="N(10,4)", xlim=c(-5, 25), ylab="Density")
+
+curve(dnorm(x, mean=10, sd=2), from=0, to=20, col="blue", lwd=2, 
+      main="N(10,2)", xlim=c(-5, 25), ylab="Density")
+
+curve(dnorm(x, mean=5, sd=10), from=-20, to=30, col="green", lwd=2, 
+      main="N(5,10)", xlim=c(-20, 30), ylab="Density")
+
+curve(dnorm(x, mean=5, sd=1/2), from=3, to=7, col="purple", lwd=2, 
+      main="N(5,1/2)", xlim=c(3, 7), ylab="Density")
+
+layout(matrix(1:4, 2, 2))
+
+curve(dnorm(x, mean=0, sd=1), from=-3, to=3, col="red", lwd=2, 
+      main="N(0,1), P(Y ≥ 2)", ylab="Density")
+polygon(c(2, seq(2, 3, length=100), 3), 
+        c(0, dnorm(seq(2, 3, length=100), mean=0, sd=1), 0), 
+        col="lightblue", border=NA)
+prob1 <- round(1 - pnorm(2, mean=0, sd=1), 4)
+legend("topright", legend=paste("P(Y ≥ 2) =", prob1), bg="white")
+
+curve(dnorm(x, mean=4, sd=2), from=-2, to=10, col="blue", lwd=2, 
+      main="N(4,2), P(1 ≤ Y < 5)", ylab="Density")
+polygon(c(1, seq(1, 5, length=100), 5), 
+        c(0, dnorm(seq(1, 5, length=100), mean=4, sd=2), 0), 
+        col="lightblue", border=NA)
+prob2 <- round(pnorm(5, mean=4, sd=2) - pnorm(1, mean=4, sd=2), 4)
+legend("topright", legend=paste("P(1 ≤ Y < 5) =", prob2), bg="white")
+
+curve(dnorm(x, mean=10, sd=4), from=0, to=20, col="green", lwd=2, 
+      main="N(10,4), P(Y < 10)", ylab="Density")
+polygon(c(min(0), seq(min(0), 10, length=100), 10), 
+        c(0, dnorm(seq(min(0), 10, length=100), mean=10, sd=4), 0), 
+        col="lightblue", border=NA)
+prob3 <- round(pnorm(10, mean=10, sd=4), 4)
+legend("topright", legend=paste("P(Y < 10) =", prob3), bg="white")
+
+curve(dnorm(x, mean=-2, sd=1/2), from=-4, to=0, col="purple", lwd=2, 
+      main="N(-2,1/2), P(-3 < Y ≤ -2)", ylab="Density")
+polygon(c(-3, seq(-3, -2, length=100), -2), 
+        c(0, dnorm(seq(-3, -2, length=100), mean=-2, sd=1/2), 0), 
+        col="lightblue", border=NA)
+
+prob4 <- round(pnorm(-2, mean=-2, sd=1/2) - pnorm(-3, mean=-2, sd=1/2), 4)
+legend("topright", legend=paste("P(-3 < Y ≤ -2) =", prob4), bg="white")
+
+```
+
+
+# Task 3
+
+```{R}
+x <- seq(0, 20, length=100)
+
+curve(dgamma(x, shape=1, scale=1), from=0, to=20, col="red", lwd=2, 
+      xlab="Y", ylab="Density", main="Overlay of Gamma Distributions")
+
+curve(dgamma(x, shape=3, scale=1), from=0, to=20, col="blue", lwd=2, add=TRUE)
+
+curve(dgamma(x, shape=5, scale=1), from=0, to=20, col="green", lwd=2, add=TRUE)
+
+legend("topright", legend=c("Gamma(1,1)", "Gamma(3,1)", "Gamma(5,1)"), 
+       col=c("red", "blue", "green"), lwd=2)
+
+
+curve(dgamma(x, shape=3, scale=2), from=0, to=10, col="purple", lwd=2, 
+      xlab="Y", ylab="Density", main="Gamma Distributions with Probability Regions", 
+      ylim=c(0, 0.3))
+
+polygon(c(2, seq(2, 5, length=100), 5), 
+        c(0, dgamma(seq(2, 5, length=100), shape=3, scale=2), 0), 
+        col="lightblue", border=NA)
+prob1 <- round(pgamma(5, shape=3, scale=2) - pgamma(2, shape=3, scale=2), 4)
+legend("topright", legend=paste("P(2 < Y < 5) =", prob1), bg="white")
+
+curve(dgamma(x, shape=6, scale=3), from=0, to=15, col="orange", lwd=2, 
+      add=TRUE)
+
+polygon(c(1, seq(1, 4, length=100), 4), 
+        c(0, dgamma(seq(1, 4, length=100), shape=6, scale=3), 0), 
+        col="pink", border=NA)
+prob2 <- round(pgamma(4, shape=6, scale=3) - pgamma(1, shape=6, scale=3), 4)
+legend("topright", legend=paste("P(1 ≤ Y ≤ 4) =", prob2), bg="white")
+
+curve(dgamma(x, shape=2, scale=4), from=0, to=15, col="brown", lwd=2, 
+      add=TRUE)
+
+polygon(c(3, seq(3, 6, length=100), 6), 
+        c(0, dgamma(seq(3, 6, length=100), shape=2, scale=4), 0), 
+        col="lightgreen", border=NA)
+prob3 <- round(pgamma(6, shape=2, scale=4) - pgamma(3, shape=2, scale=4), 4)
+legend("topright", legend=paste("P(3 ≤ Y < 6) =", prob3), bg="white")
+
+```
+
+
+# Task 4
+
+(USE CURVE)
+
+
+```{R}
+layout(matrix(1:4, 2, 2))
+
+curve(dchisq(x, df=1), from=0, to=10, col="red", lwd=2,
+      xlab="Y", ylab="Density", main="Chi-Square(df=1)")
+
+curve(dchisq(x, df=2), from=0, to=10, col="blue", lwd=2,
+      xlab="Y", ylab="Density", main="Chi-Square(df=2)")
+
+curve(dchisq(x, df=4), from=0, to=10, col="green", lwd=2,
+      xlab="Y", ylab="Density", main="Chi-Square(df=4)")
+
+curve(dchisq(x, df=20), from=0, to=10, col="purple", lwd=2,
+      xlab="Y", ylab="Density", main="Chi-Square(df=20)")
+
+par(mfrow=c(1, 1))
+
+curve(dchisq(x, df=2), from=0, to=10, col="blue", lwd=2, ylab="Density", 
+      main="Chi-Square(df=2), P(2 ≤ Y ≤ 4)")
+polygon(c(2, seq(2, 4, length=100), 4), c(0, dchisq(seq(2, 4, length=100), df=2), 0), col="lightblue")
+prob1 <- round(pchisq(4, df=2) - pchisq(2, df=2), 4)
+legend("topright", legend=paste("P(2 ≤ Y ≤ 4) =", prob1))
+
+curve(dchisq(x, df=3), from=0, to=10, col="red", lwd=2, ylab="Density", 
+      main="Chi-Square(df=3), P(3 ≤ Y ≤ 5)")
+polygon(c(3, seq(3, 5, length=100), 5), c(0, dchisq(seq(3, 5, length=100), df=3), 0), col="pink")
+prob2 <- round(pchisq(5, df=3) - pchisq(3, df=3), 4)
+legend("topright", legend=paste("P(3 ≤ Y ≤ 5) =", prob2))
+
+curve(dchisq(x, df=20), from=0, to=30, col="green", lwd=2, ylab="Density", 
+      main="Chi-Square(df=20), P(10 < Y ≤ 21)")
+polygon(c(10, seq(10, 21, length=100), 21), c(0, dchisq(seq(10, 21, length=100), df=20), 0), col="lightgreen")
+prob3 <- round(pchisq(21, df=20) - pchisq(10, df=20), 4)
+legend("topright", legend=paste("P(10 < Y ≤ 21) =", prob3))
+```
+
+
+# Task 5
+
+```{R}
+layout(matrix(1:4, 2, 2))
+
+curve(dweibull(x, shape=1, scale=1), from=0, to=10, col="red", lwd=2, 
+      xlab="Y", ylab="Density", main="Weibull(shape=1, scale=1)")
+
+curve(dweibull(x, shape=2, scale=2), from=0, to=10, col="blue", lwd=2, 
+      xlab="Y", ylab="Density", main="Weibull(shape=2, scale=2)")
+
+curve(dweibull(x, shape=3, scale=1), from=0, to=10, col="green", lwd=2, 
+      xlab="Y", ylab="Density", main="Weibull(shape=3, scale=1)")
+
+curve(dweibull(x, shape=1.5, scale=3), from=0, to=10, col="purple", lwd=2, 
+      xlab="Y", ylab="Density", main="Weibull(shape=1.5, scale=3)")
+
+par(mfrow=c(1,1))
+
+curve(dweibull(x, shape=1.5, scale=2), from=0, to=10, col="red", lwd=2, 
+      ylab="Density", main="Weibull(shape=1.5, scale=2), P(2 ≤ Y ≤ 5)")
+polygon(c(2, seq(2, 5, length=100), 5), 
+        c(0, dweibull(seq(2, 5, length=100), shape=1.5, scale=2), 0), 
+        col="lightpink", border=NA)
+prob1 <- round(pweibull(5, shape=1.5, scale=2) - pweibull(2, shape=1.5, scale=2), 4)
+legend("topright", legend=paste("P(2 ≤ Y ≤ 5) =", prob1), bg="white")
+
+curve(dweibull(x, shape=3, scale=3), from=0, to=10, col="blue", lwd=2, 
+      ylab="Density", main="Weibull(shape=3, scale=3), P(3 ≤ Y ≤ 6)")
+polygon(c(3, seq(3, 6, length=100), 6), 
+        c(0, dweibull(seq(3, 6, length=100), shape=3, scale=3), 0), 
+        col="lightblue", border=NA)
+prob2 <- round(pweibull(6, shape=3, scale=3) - pweibull(3, shape=3, scale=3), 4)
+legend("topright", legend=paste("P(3 ≤ Y ≤ 6) =", prob2), bg="white")
+
+curve(dweibull(x, shape=2, scale=4), from=0, to=15, col="green", lwd=2, 
+      ylab="Density", main="Weibull(shape=2, scale=4), P(5 ≤ Y ≤ 10)")
+polygon(c(5, seq(5, 10, length=100), 10), 
+        c(0, dweibull(seq(5, 10, length=100), shape=2, scale=4), 0), 
+        col="lightgreen", border=NA)
+prob3 <- round(pweibull(10, shape=2, scale=4) - pweibull(5, shape=2, scale=4), 4)
+legend("topright", legend=paste("P(5 ≤ Y ≤ 10) =", prob3), bg="white")
+```
+
+
+
+# Task 6
+
+```{R}
+layout(matrix(1:4, 2, 2))
+
+curve(dbeta(x, shape1=2, shape2=3), from=0, to=1, col="red", lwd=2, 
+      xlab="Y", ylab="Density", main="Beta(2,3)")
+
+curve(dbeta(x, shape1=3, shape2=2), from=0, to=1, col="blue", lwd=2, 
+      xlab="Y", ylab="Density", main="Beta(3,2)")
+
+curve(dbeta(x, shape1=5, shape2=2), from=0, to=1, col="green", lwd=2, 
+      xlab="Y", ylab="Density", main="Beta(5,2)")
+
+curve(dbeta(x, shape1=2, shape2=5), from=0, to=1, col="purple", lwd=2, 
+      xlab="Y", ylab="Density", main="Beta(2,5)")
+
+
+par(mfrow=c(1,1))
+
+curve(dbeta(x, shape1=2, shape2=3), from=0, to=1, col="red", lwd=2,
+      xlab="Y", ylab="Density", main="Beta(2,3), P(0.2 ≤ Y ≤ 0.6)")
+polygon(c(0.2, seq(0.2, 0.6, length=100), 0.6), 
+        c(0, dbeta(seq(0.2, 0.6, length=100), shape1=2, shape2=3), 0), 
+        col="lightpink", border=NA)
+prob1 <- round(pbeta(0.6, shape1=2, shape2=3) - pbeta(0.2, shape1=2, shape2=3), 4)
+legend("topright", legend=paste("P(0.2 ≤ Y ≤ 0.6) =", prob1), bg="white")
+
+curve(dbeta(x, shape1=3, shape2=2), from=0, to=1, col="blue", lwd=2,
+      xlab="Y", ylab="Density", main="Beta(3,2), P(0.3 ≤ Y ≤ 0.7)")
+polygon(c(0.3, seq(0.3, 0.7, length=100), 0.7), 
+        c(0, dbeta(seq(0.3, 0.7, length=100), shape1=3, shape2=2), 0), 
+        col="lightblue", border=NA)
+prob2 <- round(pbeta(0.7, shape1=3, shape2=2) - pbeta(0.3, shape1=3, shape2=2), 4)
+legend("topright", legend=paste("P(0.3 ≤ Y ≤ 0.7) =", prob2), bg="white")
+
+curve(dbeta(x, shape1=5, shape2=1), from=0, to=1, col="green", lwd=2,
+      xlab="Y", ylab="Density", main="Beta(5,1), P(0.5 ≤ Y ≤ 0.9)")
+polygon(c(0.5, seq(0.5, 0.9, length=100), 0.9), 
+        c(0, dbeta(seq(0.5, 0.9, length=100), shape1=5, shape2=1), 0), 
+        col="lightgreen", border=NA)
+prob3 <- round(pbeta(0.9, shape1=5, shape2=1) - pbeta(0.5, shape1=5, shape2=1), 4)
+legend("topright", legend=paste("P(0.5 ≤ Y ≤ 0.9) =", prob3), bg="white")
+```
+
+
+# Task 7
+
+
+```{R}
+library(MATH4753MORRISCHIFALL)
+
+MATH4753MORRISCHIFALL::myncurve(mu=10, sigma=5, a=6)
+```
+
+

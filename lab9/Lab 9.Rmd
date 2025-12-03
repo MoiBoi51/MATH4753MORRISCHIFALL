@@ -1,0 +1,380 @@
+---
+title: "Lab 9"
+author: "Morris Chi"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: yes
+    toc_float: yes
+    theme: spacelab
+    highlight: pygments
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+# Task 1
+
+```{R}
+getwd()
+```
+
+# Task 2
+
+Line A: Generates the bootstrap resamples from the original data
+Line B: Calculates confidence interval 
+
+It is necessary so that the estimation doesn't end up biased so that nothing interferes with the bootstrap method's accuracy
+
+Values can repeat, and due to this some might not appear every time
+
+The values don't repeat but they are shuffled with every run through
+
+You get an error because it's trying to draw 21 samples from a set that only has 20 samples, especially since it won't repeat any samples, so you can't get 21 from 20, hence the error
+
+```{R}
+	set.seed(35) # This will give everyone the same sample
+	sam=round(rnorm(20,mean=10,sd=4),2)
+	unique(sample(sam,20,replace=TRUE) ) # repeat this line 5Xs
+	unique(sample(sam,20,replace=TRUE) )
+	unique(sample(sam,20,replace=TRUE) )
+	unique(sample(sam,20,replace=TRUE) )
+	unique(sample(sam,20,replace=TRUE) )
+	unique(sample(sam,20,replace=FALSE) ) # repeat this line 5Xs
+	unique(sample(sam,20,replace=FALSE) )
+	unique(sample(sam,20,replace=FALSE) )
+	unique(sample(sam,20,replace=FALSE) )
+	unique(sample(sam,20,replace=FALSE) )
+
+  #sample(sam,21,replace=FALSE)
+
+```
+
+# Task 3
+
+```{R}
+myboot <- function(sample, iter = 10000, alpha = 0.05) {
+  n <- length(sample)
+  boot_means <- replicate(iter, mean(sample[sample(1:n, n, replace = TRUE)]))
+  
+  ci <- quantile(boot_means, probs = c(alpha/2, 1 - alpha/2))
+  
+  hist(boot_means, breaks = 30, main = "Bootstrap Distribution of Mean",
+       xlab = "Bootstrap Sample Means", col = "lightblue", border = "white")
+  abline(v = ci, col = "red", lwd = 2, lty = 2)
+  abline(v = mean(sample), col = "blue", lwd = 2)
+  legend("topright", legend = c("95% CI", "Sample Mean"),
+         col = c("red", "blue"), lty = c(2, 1), lwd = 2)
+  
+  return(list(CI = ci, boot_means = boot_means, sample_mean = mean(sample)))
+}
+
+set.seed(39)
+sam_a <- rnorm(25, mean = 25, sd = 10)
+res_a <- myboot(sam_a)
+cat("\n--- Case A: Normal ---\n")
+cat("Sample Mean:", round(res_a$sample_mean, 4), "\n")
+cat("True Mean: 25\n")
+cat("95% CI:", round(res_a$CI, 4), "\n")
+
+set.seed(30)
+sam_b <- rchisq(20, df = 3)
+res_b <- myboot(sam_b)
+cat("\n--- Case B: Chi-squared ---\n")
+cat("Sample Mean:", round(res_b$sample_mean, 4), "\n")
+cat("True Mean: 3 (df)\n")
+cat("95% CI:", round(res_b$CI, 4), "\n")
+
+set.seed(40)
+sam_c <- rgamma(30, shape = 2, scale = 3)
+res_c <- myboot(sam_c)
+cat("\n--- Case C: Gamma ---\n")
+cat("Sample Mean:", round(res_c$sample_mean, 4), "\n")
+cat("True Mean: 2 × 3 = 6\n")
+cat("95% CI:", round(res_c$CI, 4), "\n")
+
+set.seed(10)
+sam_d <- rbeta(20, shape1 = 3, shape2 = 4)
+res_d <- myboot(sam_d)
+cat("\n--- Case D: Beta ---\n")
+cat("Sample Mean:", round(res_d$sample_mean, 4), "\n")
+cat("True Mean: 3 / (3 + 4) = 0.4286\n")
+cat("95% CI:", round(res_d$CI, 4), "\n")
+
+
+
+myboot_var <- function(sample, iter = 10000, alpha = 0.20) {
+  n <- length(sample)
+  boot_vars <- replicate(iter, var(sample[sample(1:n, n, replace = TRUE)]))
+  
+  ci <- quantile(boot_vars, probs = c(alpha/2, 1 - alpha/2))
+  
+  hist(boot_vars, breaks = 30, main = "Bootstrap Distribution of Variance",
+       xlab = "Bootstrap Sample Variances", col = "lightgreen", border = "white")
+  abline(v = ci, col = "red", lwd = 2, lty = 2)
+  abline(v = var(sample), col = "blue", lwd = 2)
+  legend("topright", legend = c("80% CI", "Sample Variance"),
+         col = c("red", "blue"), lty = c(2, 1), lwd = 2)
+  
+  return(list(CI = ci, boot_vars = boot_vars, sample_var = var(sample)))
+}
+
+
+set.seed(39)
+sam_a <- rnorm(25, mean = 25, sd = 10)
+res_a <- myboot_var(sam_a)
+cat("\n--- Case A: Normal ---\n")
+cat("Sample Variance:", round(res_a$sample_var, 4), "\n")
+cat("True Variance: 100\n")
+cat("80% CI:", round(res_a$CI, 4), "\n")
+cat("Contains true value:", 100 >= res_a$CI[1] && 100 <= res_a$CI[2], "\n")
+
+
+set.seed(30)
+sam_b <- rchisq(20, df = 3)
+res_b <- myboot_var(sam_b)
+cat("\n--- Case B: Chi-squared ---\n")
+cat("Sample Variance:", round(res_b$sample_var, 4), "\n")
+cat("True Variance: 6\n")
+cat("80% CI:", round(res_b$CI, 4), "\n")
+cat("Contains true value:", 6 >= res_b$CI[1] && 6 <= res_b$CI[2], "\n")
+
+
+set.seed(40)
+sam_c <- rgamma(30, shape = 2, scale = 3)
+res_c <- myboot_var(sam_c)
+cat("\n--- Case C: Gamma ---\n")
+cat("Sample Variance:", round(res_c$sample_var, 4), "\n")
+cat("True Variance: 18\n")
+cat("80% CI:", round(res_c$CI, 4), "\n")
+cat("Contains true value:", 18 >= res_c$CI[1] && 18 <= res_c$CI[2], "\n")
+
+set.seed(10)
+sam_d <- rbeta(20, shape1 = 3, shape2 = 4)
+res_d <- myboot_var(sam_d)
+cat("\n--- Case D: Beta ---\n")
+cat("Sample Variance:", round(res_d$sample_var, 4), "\n")
+cat("True Variance: ~0.0306\n")
+cat("80% CI:", round(res_d$CI, 4), "\n")
+cat("Contains true value:", 0.0306 >= res_d$CI[1] && 0.0306 <= res_d$CI[2], "\n")
+```
+
+# Task 4
+
+Bootstrap interval estimate is 1.5 to 3
+
+```{R}
+myboot2 <- function(iter = 10000, x, fun = "mean", alpha = 0.05, cx = 1.5, ...) {
+  n = length(x)
+  y = sample(x, n * iter, replace = TRUE)
+  rs.mat = matrix(y, nr = n, nc = iter, byrow = TRUE)
+  xstat = apply(rs.mat, 2, fun)
+  ci = quantile(xstat, c(alpha / 2, 1 - alpha / 2))
+  para = hist(xstat, freq = FALSE, las = 1,
+              main = paste("Histogram of Bootstrap sample statistics", "\n", "alpha=", alpha, " iter=", iter, sep=""),
+              ...)
+  mat = matrix(x, nr = length(x), nc = 1, byrow = TRUE)
+  pte = apply(mat, 2, fun)
+  abline(v = pte, lwd = 3, col = "Black")
+  segments(ci[1], 0, ci[2], 0, lwd = 4)
+  text(ci[1], 0, paste("(", round(ci[1], 2), sep = ""), col = "Red", cex = cx)
+  text(ci[2], 0, paste(round(ci[2], 2), ")", sep = ""), col = "Red", cex = cx)
+  text(pte, max(para$density) / 2, round(pte, 2), cex = cx)
+  invisible(list(ci = ci, fun = fun, x = x))
+}
+
+sam <- c(1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4)
+
+set.seed(123)
+boot_median <- myboot2(iter = 10000, x = sam, fun = "median", alpha = 0.05, cx = 1.5)
+
+cat("Bootstrap 95% CI for the median:", round(boot_median$ci[1], 4), "to", round(boot_median$ci[2], 4), "\n")
+```
+
+# Task 5
+
+```{R}
+myboot2 <- function(iter = 10000, x, fun = "mean", alpha = 0.05, cx = 1.5, ...) {
+  n = length(x)
+  y = sample(x, n * iter, replace = TRUE)
+  rs.mat = matrix(y, nr = n, nc = iter, byrow = TRUE)
+  xstat = apply(rs.mat, 2, fun)
+  ci = quantile(xstat, c(alpha / 2, 1 - alpha / 2))
+  para = hist(xstat, freq = FALSE, las = 1,
+              main = paste("Histogram of Bootstrap sample statistics", "\n", "alpha=", alpha, " iter=", iter, sep=""),
+              ...)
+  mat = matrix(x, nr = length(x), nc = 1, byrow = TRUE)
+  pte = apply(mat, 2, fun)
+  abline(v = pte, lwd = 3, col = "Black")
+  segments(ci[1], 0, ci[2], 0, lwd = 4)
+  text(ci[1], 0, paste("(", round(ci[1], 2), sep = ""), col = "Red", cex = cx)
+  text(ci[2], 0, paste(round(ci[2], 2), ")", sep = ""), col = "Red", cex = cx)
+  text(pte, max(para$density) / 2, round(pte, 2), cex = cx)
+  invisible(list(ci = ci, fun = fun, x = x))
+}
+
+bootstrap_mean_median_ratio <- function(sam, iter = 10000, alpha = 0.05) {
+  mean_value = mean(sam)
+  median_value = median(sam)
+  ratio = mean_value / median_value
+
+  boot_mean = myboot2(iter = iter, x = sam, fun = "mean", alpha = alpha)
+  boot_median = myboot2(iter = iter, x = sam, fun = "median", alpha = alpha)
+
+  boot_ratio = boot_mean$ci / boot_median$ci  
+  
+  list(mean = mean_value, median = median_value, ratio = ratio, ci = boot_ratio)
+}
+
+set.seed(39)
+sam_A = rnorm(25, mean = 25, sd = 10)
+
+set.seed(30)
+sam_B = rchisq(20, df = 3)
+
+set.seed(40)
+sam_C = rgamma(30, shape = 2, scale = 3)
+
+set.seed(10)
+sam_D = rbeta(20, shape1 = 3, shape2 = 4)
+
+result_A_95 = bootstrap_mean_median_ratio(sam_A, iter = 10000, alpha = 0.05)
+result_B_95 = bootstrap_mean_median_ratio(sam_B, iter = 10000, alpha = 0.05)
+result_C_95 = bootstrap_mean_median_ratio(sam_C, iter = 10000, alpha = 0.05)
+result_D_95 = bootstrap_mean_median_ratio(sam_D, iter = 10000, alpha = 0.05)
+
+result_A_70 = bootstrap_mean_median_ratio(sam_A, iter = 10000, alpha = 0.15)
+result_B_70 = bootstrap_mean_median_ratio(sam_B, iter = 10000, alpha = 0.15)
+result_C_70 = bootstrap_mean_median_ratio(sam_C, iter = 10000, alpha = 0.15)
+result_D_70 = bootstrap_mean_median_ratio(sam_D, iter = 10000, alpha = 0.15)
+
+cat("Sample A - 95% CI for mean/median ratio:", result_A_95$ci[1], "to", result_A_95$ci[2], "\n")
+cat("Sample B - 95% CI for mean/median ratio:", result_B_95$ci[1], "to", result_B_95$ci[2], "\n")
+cat("Sample C - 95% CI for mean/median ratio:", result_C_95$ci[1], "to", result_C_95$ci[2], "\n")
+cat("Sample D - 95% CI for mean/median ratio:", result_D_95$ci[1], "to", result_D_95$ci[2], "\n")
+
+cat("Sample A - 70% CI for mean/median ratio:", result_A_70$ci[1], "to", result_A_70$ci[2], "\n")
+cat("Sample B - 70% CI for mean/median ratio:", result_B_70$ci[1], "to", result_B_70$ci[2], "\n")
+cat("Sample C - 70% CI for mean/median ratio:", result_C_70$ci[1], "to", result_C_70$ci[2], "\n")
+cat("Sample D - 70% CI for mean/median ratio:", result_D_70$ci[1], "to", result_D_70$ci[2], "\n")
+```
+
+
+# Task 6
+
+```{R}
+myboot2 <- function(iter = 10000, x, fun = "mean", alpha = 0.05, cx = 1.5, ...) {
+  n = length(x)
+  y = sample(x, n * iter, replace = TRUE)
+  rs.mat = matrix(y, nr = n, nc = iter, byrow = TRUE)
+  xstat = apply(rs.mat, 2, fun)
+  ci = quantile(xstat, c(alpha / 2, 1 - alpha / 2))
+  para = hist(xstat, freq = FALSE, las = 1,
+              main = paste("Histogram of Bootstrap sample statistics", "\n", "alpha=", alpha, " iter=", iter, sep=""),
+              ...)
+  mat = matrix(x, nr = length(x), nc = 1, byrow = TRUE)
+  pte = apply(mat, 2, fun)
+  abline(v = pte, lwd = 3, col = "Black")
+  segments(ci[1], 0, ci[2], 0, lwd = 4)
+  text(ci[1], 0, paste("(", round(ci[1], 2), sep = ""), col = "Red", cex = cx)
+  text(ci[2], 0, paste(round(ci[2], 2), ")", sep = ""), col = "Red", cex = cx)
+  text(pte, max(para$density) / 2, round(pte, 2), cex = cx)
+  invisible(list(ci = ci, fun = fun, x = x))
+}
+
+set.seed(100)
+sam_lognorm = rlnorm(20, meanlog = 0, sdlog = 1)
+
+set.seed(110)
+sam_weibull = rweibull(20, shape = 1.5, scale = 2)
+
+set.seed(120)
+sam_beta = rbeta(20, shape1 = 2, shape2 = 5)
+
+set.seed(130)
+sam_poisson = rpois(20, lambda = 3)
+
+boot_lognorm_mean = myboot2(iter = 10000, x = sam_lognorm, fun = "mean", alpha = 0.20)
+boot_lognorm_var = myboot2(iter = 10000, x = sam_lognorm, fun = "var", alpha = 0.20)
+
+boot_weibull_mean = myboot2(iter = 10000, x = sam_weibull, fun = "mean", alpha = 0.20)
+boot_weibull_var = myboot2(iter = 10000, x = sam_weibull, fun = "var", alpha = 0.20)
+
+boot_beta_mean = myboot2(iter = 10000, x = sam_beta, fun = "mean", alpha = 0.20)
+boot_beta_var = myboot2(iter = 10000, x = sam_beta, fun = "var", alpha = 0.20)
+
+boot_poisson_mean = myboot2(iter = 10000, x = sam_poisson, fun = "mean", alpha = 0.20)
+boot_poisson_var = myboot2(iter = 10000, x = sam_poisson, fun = "var", alpha = 0.20)
+
+cat("Log-normal mean 80% CI:", boot_lognorm_mean$ci[1], "to", boot_lognorm_mean$ci[2], "\n")
+cat("Log-normal variance 80% CI:", boot_lognorm_var$ci[1], "to", boot_lognorm_var$ci[2], "\n")
+
+cat("Weibull mean 80% CI:", boot_weibull_mean$ci[1], "to", boot_weibull_mean$ci[2], "\n")
+cat("Weibull variance 80% CI:", boot_weibull_var$ci[1], "to", boot_weibull_var$ci[2], "\n")
+
+cat("Beta mean 80% CI:", boot_beta_mean$ci[1], "to", boot_beta_mean$ci[2], "\n")
+cat("Beta variance 80% CI:", boot_beta_var$ci[1], "to", boot_beta_var$ci[2], "\n")
+
+cat("Poisson mean 80% CI:", boot_poisson_mean$ci[1], "to", boot_poisson_mean$ci[2], "\n")
+cat("Poisson variance 80% CI:", boot_poisson_var$ci[1], "to", boot_poisson_var$ci[2], "\n")
+```
+
+# Task 7
+
+If the data is closer to normal, then they both work about the same, but if the data is closer to being abnormal, the bootstrap method is a bit more flexible
+
+```{R}
+myboot <- function(iter = 10000, x, fun = "mean", alpha = 0.05, cx = 1.5, ...) {
+  n = length(x)
+  y = sample(x, n * iter, replace = TRUE)
+  rs.mat = matrix(y, nr = n, nc = iter, byrow = TRUE)
+  xstat = apply(rs.mat, 2, fun)
+  ci = quantile(xstat, c(alpha / 2, 1 - alpha / 2))
+  para = hist(xstat, freq = FALSE, las = 1,
+              main = paste("Histogram of Bootstrap sample statistics", "\n", "alpha=", alpha, " iter=", iter, sep=""),
+              ...)
+  mat = matrix(x, nr = length(x), nc = 1, byrow = TRUE)
+  pte = apply(mat, 2, fun)
+  abline(v = pte, lwd = 3, col = "Black")
+  segments(ci[1], 0, ci[2], 0, lwd = 4)
+  text(ci[1], 0, paste("(", round(ci[1], 2), sep = ""), col = "Red", cex = cx)
+  text(ci[2], 0, paste(round(ci[2], 2), ")", sep = ""), col = "Red", cex = cx)
+  text(pte, max(para$density) / 2, round(pte, 2), cex = cx)
+  invisible(list(ci = ci, fun = fun, x = x))
+}
+
+set.seed(68)
+sam = rnorm(20, mean = 10, sd = 4)
+
+n = length(sam)
+mean_sam = mean(sam)
+sd_sam = sd(sam)
+z_alpha_2 = qnorm(1 - 0.05 / 2, mean = 0, sd = 1)
+CI_theoretical_lower = mean_sam - z_alpha_2 * (sd_sam / sqrt(n))
+CI_theoretical_upper = mean_sam + z_alpha_2 * (sd_sam / sqrt(n))
+
+cat("Theoretical 95% CI for the population mean:", CI_theoretical_lower, "to", CI_theoretical_upper, "\n")
+
+boot_result = myboot(iter = 10000, x = sam, fun = "mean", alpha = 0.05)
+
+cat("Bootstrap 95% CI for the population mean:", boot_result$ci[1], "to", boot_result$ci[2], "\n")
+
+
+
+```
+
+
+# Task 8
+
+
+
+```{R}
+library(MATH4753MORRISCHIFALL)
+ddt = read.csv("DDT.csv")
+obj = MATH4753MORRISCHISPRING::myboot2(x = ddt$DDT)
+```
+
+

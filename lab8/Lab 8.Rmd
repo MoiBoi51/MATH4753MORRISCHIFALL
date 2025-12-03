@@ -1,0 +1,215 @@
+---
+title: "Lab 8"
+author: "Morris Chi"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: yes
+    toc_float: yes
+    theme: spacelab
+    highlight: pygments
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Task 1
+
+```{R}
+getwd()
+```
+
+# Task 2
+
+Mean 𝜇 = 2.5 Variance 𝜎\^2 ≈ 2.0833
+
+They are quite close to the population parameters, not exceeding 1 above or below, which is a pretty small difference, as well as being consistent, which makes sense for random samples
+
+T = Y1 + Y2 + ... Yn
+
+Mean: E(T) = n𝜇 = n \* (a + b)/2
+
+Variance: Var(T) = n𝜎\^2 = n\*((b-a)\^2 / 12)
+
+Y = T/n = (Y1 + Y2 + ... + Yn)
+
+Mean: E(Y) = E(T)/n = n𝜇/n = 𝜇 = (a+b)/2
+
+Var(Y): Var(T)/n\^2 = n𝜎^2/n^2 = 𝜎\^2/n = (b-a)\^2/12n
+
+A: Generates random numbers
+
+B: Puts the random numbers into a matrix
+
+C: Calculates sums of columns
+
+D: Calls myclt, stores result
+
+```{R}
+sample <- runif(10, 0, 5)
+sample
+
+a <- 0
+b <- 5
+mean <- (a + b) / 2
+mean
+
+
+variance <- (b - a)^2 / 12
+variance
+
+
+mean_sample <- mean(sample)  
+var_sample <- var(sample)    
+
+mean_sample
+var_sample
+
+
+myclt = function(n, iter) {
+  y = runif(n * iter, 0, 5)  
+  data = matrix(y, nr = n, nc = iter, byrow = TRUE)  
+  
+  sm = apply(data, 2, sum)  
+  
+  sample_means = sm / n  
+  
+  hist(sample_means, main = "Distribution of Sample Means", col = "lightblue", freq = FALSE)  
+  curve(dnorm(x, mean = (0 + 5) / 2, sd = sqrt((5 - 0)^2 / 12 / n)), add = TRUE, col = "red", lwd = 2)  
+  
+  return(sample_means)  
+}
+
+w = myclt(n = 10, iter = 10000)
+
+w_mean = mean(w)  
+w_var = var(w)    
+
+print(w_mean)
+print(w_var)
+```
+
+# Task 3
+
+Increasing n leads to a more normal distribution for the sample means, which makes the Central Limit Theorem pretty apparent. The standard deviation formula also applys here, accounting for the spread of the sample means as it adjusts to the changing n
+
+```{R}
+mycltu <- function(n, iter, a = 0, b = 5) {
+  y <- runif(n * iter, a, b)                          
+  
+  data <- matrix(y, nrow = n, ncol = iter, byrow = TRUE) 
+  sm <- apply(data, 2, sum)                           
+  
+  h <- hist(sm, plot = FALSE)                         
+  
+  hist(sm, col = rainbow(length(h$mids)), freq = FALSE,
+       main = paste("n =", n, "Distribution of Sum of Uniforms"),
+       xlab = "Sum", ylab = "Density")
+  
+  curve(dnorm(x, mean = n * (a + b) / 2, 
+              sd = sqrt(n * (b - a)^2 / 12)), 
+        add = TRUE, lwd = 2, col = "blue")
+  
+  return(sm)
+}
+
+par(mfrow = c(3, 2))
+
+params <- c(1, 2, 3, 5, 10, 30)
+a <- 0
+b <- 10
+iter <- 10000
+
+for (n in params) {
+  w <- mycltu(n = n, iter = iter, a = a, b = b)
+}
+```
+
+# Task 4
+
+For this one its pretty similar to the one before, as n increases, the sample means' distribution becomes more normal, which shows off the Central Limit Theorem. p, the probability, affects the means a bit, but not really the shape of distribution for large values for n. However, because of the standard deviation formula, it can change the spread of the distribution.
+
+```{R}
+mycltb <- function(n, iter, p = 0.5, ...) {
+  
+  y <- rbinom(n * iter, size = n, prob = p)
+  
+  data <- matrix(y, nr = n, nc = iter, byrow = TRUE)
+  
+  w <- apply(data, 2, mean)
+  
+  param <- hist(w, plot = FALSE)
+  
+  ymax <- max(param$density)
+  ymax <- 1.1 * ymax
+  
+  hist(w, freq = FALSE, ylim = c(0, ymax),
+       main = paste("Histogram of Sample Mean", "\n", "Sample size = ", n, sep = ""),
+       xlab = "Sample Mean", ...)
+  
+  curve(dnorm(x, mean = n * p, sd = sqrt(n * p * (1 - p))), 
+        add = TRUE, col = "Red", lty = 2, lwd = 3)
+}
+
+par(mfrow = c(2, 2))
+
+p_values <- c(0.3, 0.7, 0.5)
+n_values <- c(4, 5, 10, 20)
+iter <- 10000
+
+for (p in p_values) {
+  for (n in n_values) {
+    mycltb(n = n, iter = iter, p = p)
+  }
+}
+```
+
+# Task 5
+
+```{R}
+mycltp <- function(n, iter, lambda = 10, ...) {
+  
+  y <- rpois(n * iter, lambda = lambda)
+  
+  data <- matrix(y, nr = n, nc = iter, byrow = TRUE)
+  
+  w <- apply(data, 2, mean)
+  
+  param <- hist(w, plot = FALSE)
+  
+  ymax <- max(param$density)
+  ymax <- 1.1 * ymax
+  
+  hist(w, freq = FALSE, ylim = c(0, ymax), col = rainbow(max(w)),
+       main = paste("Histogram of Sample Mean", "\n", "n =", n, " iter =", iter, " lambda =", lambda),
+       xlab = "Sample Mean", ...)
+  
+  curve(dnorm(x, mean = lambda, sd = sqrt(lambda / n)), add = TRUE, col = "Red", lty = 2, lwd = 3)
+  
+  barplot(table(y) / (n * iter), col = rainbow(max(y)), main = "Barplot of Sampled y", 
+          ylab = "Relative Frequency", xlab = "y")
+  
+  x <- 0:max(y)
+  plot(x, dpois(x, lambda = lambda), type = "h", lwd = 5, col = rainbow(max(y)),
+       main = "Probability Function for Poisson", ylab = "Probability", xlab = "y")
+}
+
+par(mfrow = c(2, 2))
+
+n_values <- c(2, 3, 5, 10, 20)
+iter <- 10000
+lambda_values <- c(4, 10)
+
+for (lambda in lambda_values) {
+  for (n in n_values) {
+    mycltp(n = n, iter = iter, lambda = lambda)
+  }
+}
+```
+
+# Task 6
+
+```{R}
+invisible(MATH4753MORRISCHIFALL::myclt())
+```

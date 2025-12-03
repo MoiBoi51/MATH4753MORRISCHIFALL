@@ -1,0 +1,261 @@
+---
+title: "Lab 4"
+author: "Morris Chi"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: yes
+    toc_float: yes
+    theme: spacelab
+    highlight: pygments
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+
+# Task 1
+
+```{R}
+getwd()
+```
+
+# Task 2
+
+```{R}
+spruce.df = read.csv("SPRUCE.csv")
+tail(spruce.df)
+```
+
+# Task 3
+
+What shape is seen? TRIANGLE
+
+P-Value? 0.29
+
+Null Hypothesis? Fails to reject Null Hypothesis
+
+Since the p-value from the Shapiro-Wilk test is 0.29, which fails to reject the Null Hypothesis and the plot of the residuals is 
+pretty randomly scattered without any obvious pattern, I'd say
+applying the straight line is pretty valid for this data set
+
+```{R}
+library(s20x)           
+trendscatter(spruce.df$Height ~ spruce.df$BHDiameter, f = 0.5)
+
+
+spruce.lm = with(spruce.df ,lm(Height~BHDiameter))
+
+height.res <- residuals(spruce.lm)  
+height.fit <- fitted(spruce.lm)     
+
+plot(height.fit, height.res, main = "Residuals vs Fitted Values", 
+     xlab = "Fitted Values", ylab = "Residuals")
+abline(h = 0, col = "red", lty = 2)  
+
+trendscatter(height.res ~ height.fit, f = 0.5)
+
+plot(spruce.lm)
+
+normcheck(spruce.lm, shapiro.wilk = TRUE)
+```
+
+# Task 4
+
+P-Value: 0.684
+
+I conclude that it fails to reject the Null Hypothesis, and that the residuals seem to be normal. That means that the quadratic model is valid for this data set
+```{R}
+quad.lm <- lm(Height ~ BHDiameter + I(BHDiameter^2), data = spruce.df)
+plot(spruce.df$BHDiameter, spruce.df$Height, main="Height vs BHDiameter with Quadratic Fit",
+     xlab="Breast Height Diameter (cm)", ylab="Height (m)", pch=16)
+# Add the quadratic curve
+lines(spruce.df$BHDiameter, predict(quad.lm), col="blue", lwd=2)
+
+quad.fit <- fitted(quad.lm)
+
+plot(quad.fit, residuals(quad.lm), main="Residuals vs Fitted Values",
+     xlab="Fitted Values", ylab="Residuals", pch=16)
+abline(h = 0, col = "red", lwd = 2)  
+
+library(s20x)  
+normcheck(quad.lm, shapiro.wilk = TRUE)  
+```
+
+# Task 5
+
+Call:
+lm(formula = Height ~ BHDiameter + I(BHDiameter^2), data = spruce.df)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-3.2966 -0.6245 -0.0707  0.7442  3.2541 
+
+Coefficients:
+                 Estimate Std. Error t value Pr(>|t|)    
+(Intercept)      0.860896   2.205022   0.390 0.698731    
+BHDiameter       1.469592   0.243786   6.028 8.88e-07 ***
+I(BHDiameter^2) -0.027457   0.006635  -4.138 0.000227 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 1.382 on 33 degrees of freedom
+Multiple R-squared:  0.7741,	Adjusted R-squared:  0.7604 
+F-statistic: 56.55 on 2 and 33 DF,  p-value: 2.182e-11
+
+
+B(0): 0.860896
+
+B(1): 1.469592
+
+B(2): -0.027457
+
+Interval Estimates:
+
+B(1): -3.62525427 to 5.34704588
+
+B(2): 0.97360659 to 1.96557775
+
+B(3): -0.04095645 to -0.01395806
+
+Equation of Fitted Line: Height = 
+
+Predictions at 15, 18, 20cm: 16.72690, 18.41740, 19.26984
+
+R^2 value: 0.7741
+
+Multiple R^2 means how well the variation is explained by the BHDiameter^2, the BHDiameter, and the Intercept
+
+The quadratic model best explains the variability in the height
+
+Anova: Model 1: Height ~ BHDiameter
+Model 2: Height ~ BHDiameter + I(BHDiameter^2)
+  Res.Df    RSS Df Sum of Sq      F    Pr(>F)    
+1     34 95.703                                  
+2     33 63.007  1    32.696 17.125 0.0002269 ***
+
+Since the P-value is less than 0.05, it rejects the Null Hypothesis, which means that the quadratic model is better for the data set than the straight line
+
+TSS: 278.9475
+
+RSS: 63.00683 
+
+MSS: 215.9407
+
+MSS/TSS: 0.7741266 
+
+
+```{R}
+summary(quad.lm)
+
+confint(quad.lm)
+
+new_data <- data.frame(BHDiameter = c(15, 18, 20))
+
+predictions <- predict(quad.lm, newdata = new_data)
+
+predictions
+
+anova(spruce.lm, quad.lm)
+
+TSS <- sum((spruce.df$Height - mean(spruce.df$Height))^2)
+TSS
+
+RSS <- sum(residuals(quad.lm)^2)
+
+RSS
+
+MSS <- TSS - RSS
+MSS
+
+MSS_TSS_ratio <- MSS / TSS
+MSS_TSS_ratio
+```
+
+# Task 6
+
+Cook's Distance is a measure that is used to find data points that by their very presence drastically alter the data, which would mean either outliers or data points that are further removed from the rest. It's used to both find these outliers and other extreme data points and then by finding and removing them, if they mess with the data too much, then a more accurate plot of the data can be made.
+
+It tells me that one of the values might be messing with the rest of the data, and it might be better for it to be removed
+
+Since the R^2 is lower on the second object with the highest Cook's Distance points removed, and the p-value is lower, I believe that the second object is much more accurate to how the data actually is than the first object with the highest Cook's Distance points included
+
+```{R}
+library(s20x)
+cooks20x(quad.lm)
+
+cooks_values <- cooks.distance(quad.lm)
+max_cooks_index <- which.max(cooks_values)
+
+
+quad2.df <- spruce.df[-max_cooks_index, ]  
+
+quad2.lm <- lm(Height ~ BHDiameter + I(BHDiameter^2), data = quad2.df)
+
+summary(quad2.lm)
+
+summary(quad.lm)
+```
+
+# Task 7
+
+Proving the Piecewise Model with LaTeX
+
+We want to prove the following model:
+
+$$
+y = \beta_0 + \beta_1 x + \beta_2 (x - x_k) I(x > x_k)
+$$
+
+Where \( I(x > x_k) \) is an indicator function that equals 1 when \( x > x_k \) and 0 otherwise.
+
+### Proof:
+
+$$
+y = \begin{cases}
+\beta_0 + \beta_1 x, & \text{if } x \leq x_k \\
+\beta_0 + \beta_1 x + \beta_2 (x - x_k), & \text{if } x > x_k
+\end{cases}
+$$
+
+This can be rewritten using \( I(x > x_k) \):
+
+$$
+y = \beta_0 + \beta_1 x + \beta_2 (x - x_k) I(x > x_k)
+$$
+
+---
+
+### Explanation:
+1. When \( x \leq x_k \), \( I(x > x_k) = 0 \), simplifying the equation to \( y = \beta_0 + \beta_1 x \).
+2. When \( x > x_k \), \( I(x > x_k) = 1 \), giving \( y = \beta_0 + \beta_1 x + \beta_2 (x - x_k) \).
+
+
+
+
+```{R}
+spruce.df$piecewise_term <- pmax(0, spruce.df$BHDiameter - 18) 
+
+piecewise.lm <- lm(Height ~ BHDiameter + piecewise_term, data = spruce.df)
+
+plot(spruce.df$BHDiameter, spruce.df$Height, pch = 1, main = "Piecewise regression", 
+     xlab = "BHDiameter", ylab = "Height")
+
+sorted_indices <- order(spruce.df$BHDiameter)
+lines(spruce.df$BHDiameter[sorted_indices], fitted(piecewise.lm)[sorted_indices], 
+      col = "blue", lwd = 2)
+```
+
+# Task 8    
+
+This function is lab 3 and it makes a scatter plot. It makes a scatter plot of SPRUCE.csv, the data in the file, and it uses Breast Height Diameter as the x, and Spruce Tree Height as the y.
+
+```{R}
+library(MATH4753MORRISCHIFALL)
+MATH4753MORRISCHIFALL::Scatterplot()
+```
+
+

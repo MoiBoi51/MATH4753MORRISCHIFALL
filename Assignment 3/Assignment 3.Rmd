@@ -1,0 +1,537 @@
+---
+title: "Assignment 3"
+author: "Morris Chi"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: yes
+    toc_float: yes
+    theme: spacelab
+    highlight: pygments
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+16/16
+
+
+# Task 1
+
+a. 28.3%
+
+b. No, the data doesn't follow the exponential distribution  
+
+```{R}
+mean_time <- 95
+
+lambda <- 1 / mean_time
+
+prob <- 1 - pexp(120, rate = lambda)
+
+
+prob
+
+
+data <- read.csv("PHISHING.csv")
+
+times <- data[[1]]
+
+hist(times, probability = TRUE, breaks = 20, col = "lightblue",
+     main = "Histogram with Exponential Overlay",
+     xlab = "Interarrival Time (seconds)")
+
+curve(dexp(x, rate = 1/95), col = "red", lwd = 2, add = TRUE)
+
+sorted_times <- sort(times)
+
+n <- length(times)
+theoretical_q <- qexp(ppoints(n), rate = 1/95)
+
+plot(theoretical_q, sorted_times,
+     main = "Q-Q Plot (Exponential with mean = 95)",
+     xlab = "Theoretical Quantiles",
+     ylab = "Sample Quantiles")
+abline(0, 1, col = "red", lwd = 2)
+
+ks.test(times, "pexp", rate = 1/95)
+```
+
+
+# Task 2
+
+a. Mean = 0.21, Variance = 0.0147
+
+b. Probability = 0.0088. This shows that since the probability is less than 0.05, it isn't expected to see such high flood levels, so it is possible that either the previous model isn't accurate anymore, or some environmental condition is causing the floods to be higher than predicted.
+
+```{R}
+alpha <- 3
+beta <- 0.07   # scale parameter
+
+mean <- alpha * beta
+variance <- alpha * (beta^2)
+
+mean
+variance
+
+
+x <- 0.60
+prob <- 1 - pgamma(x, shape = alpha, rate = 1/beta)
+prob
+
+
+```
+
+
+# Task 3
+
+a. A = 4, B = 4
+
+b. 8 and 16
+
+c. Formula B is more likely than Formula A
+
+```{R}
+alpha_A <- 2; beta_A <- 2
+alpha_B <- 1; beta_B <- 4
+
+mean_A <- alpha_A * beta_A
+mean_B <- alpha_B * beta_B
+
+var_A <- alpha_A * beta_A^2
+var_B <- alpha_B * beta_B^2
+
+p_A <- pgamma(1, shape = alpha_A, scale = beta_A)
+p_B <- pgamma(1, shape = alpha_B, scale = beta_B)
+
+mean_A; mean_B
+var_A; var_B
+p_A; p_B
+```
+
+
+# Task 4
+
+a. 0.6321
+
+b. Mean = 1.772, Standard Deviation = 0.9265
+
+c. (-0.0806, 3.6255)
+
+d. It is extremely unlikely
+
+
+```{R}
+
+alpha <- 2
+beta_param <- 4
+
+scale <- beta_param^(1/alpha)   
+shape <- alpha                  
+
+p_repair_2yrs <- pweibull(2, shape = shape, scale = scale)
+p_repair_2yrs
+
+mean_y <- scale * gamma(1 + 1/shape)
+var_y  <- scale^2 * (gamma(1 + 2/shape) - (gamma(1 + 1/shape))^2)
+sd_y   <- sqrt(var_y)
+mean_y
+sd_y
+
+
+lower <- mean_y - 2*sd_y
+upper <- mean_y + 2*sd_y
+c(lower, upper)
+
+
+p_gt6 <- 1 - pweibull(6, shape = shape, scale = scale)
+p_gt6
+
+```
+
+
+# Task 5
+
+a. mean = 0.1818 and var = 0.0124
+
+b. 0.0464
+
+c. 0.2639
+
+
+
+```{R}
+alpha <- 2
+beta <- 9
+
+mean_Y <- alpha / (alpha + beta)
+var_Y <- (alpha * beta) / ((alpha + beta)^2 * (alpha + beta + 1))
+
+mean_Y
+var_Y
+
+
+p_b <- 1 - pbeta(0.4, alpha, beta)
+p_b
+
+
+p_c <- pbeta(0.1, alpha, beta)
+p_c
+```
+
+
+# Task 6
+
+a. a = 2, λ = 4
+
+b. Mean = 3.545, Variability = 3.434
+
+c. Probability = 0.1054
+
+
+```{R}
+shape <- 2
+scale <- 4    
+
+
+mean_y <- scale * gamma(1 + 1/shape)
+var_y  <- scale^2 * (gamma(1 + 2/shape) - (gamma(1 + 1/shape))^2)
+mean_y
+var_y
+
+p_gt6 <- 1 - pweibull(6, shape = shape, scale = scale)
+p_gt6
+
+
+```
+
+
+# Task 7
+
+a. 1/36
+
+b. 1/6, 1/6
+
+c. The table below shows the conditional probability, that remains the same as a and b
+
+d. The conditional probability equals the probabilty of the other distributions, meaning that X and Y are independent variables, as the outcome of one die does not affect the outcome of the other die
+
+```{R}
+x <- 1:6
+y <- 1:6
+
+joint <- expand.grid(X = x, Y = y)
+
+joint$prob <- 1/36
+
+head(joint, 10)   
+sum(joint$prob)   
+
+p1 <- aggregate(prob ~ X, data = joint, sum)
+p2 <- aggregate(prob ~ Y, data = joint, sum)
+
+p1
+p2
+
+
+cond_X_given_Y3 <- subset(joint, Y == 3)
+cond_X_given_Y3$cond_prob <- cond_X_given_Y3$prob / p2$prob[p2$Y == 3]
+cond_X_given_Y3
+
+all.equal(unique(cond_X_given_Y3$cond_prob), unique(p1$prob))
+
+
+```
+
+
+# Task 8
+
+a. (X,Y) -> (1,1) = 1/7, (2,1) = 2/7, (3,1) = 1/7, (3,2) = 2/7, (3,3) = 1/7
+
+b. X(1) = 0.1429, X(2) = 0.2857, X(3) = 0.5714
+
+c. Y(1) = 0.5714, Y(2) = 0.2857, Y(3) = 0.1429
+
+d. Y given X = 1 is 1, 0, 0. Y given X = 2 is 1, 0, 0. Y given X = 3 is 1/4, 2/4, 1/4 
+
+
+```{R}
+ParticleID <- c(1, 2, 3, 4, 5, 6, 7)
+EnergyLvl <- c(3, 1, 3, 2, 3, 3, 2)
+TimePeriod <- c(1, 1, 3, 1, 2, 2, 1)
+
+joint_counts <- table(EnergyLvl, TimePeriod)
+joint_prob   <- prop.table(joint_counts)  
+
+P_X <- prop.table(table(EnergyLvl))        
+P_Y <- prop.table(table(TimePeriod))       
+
+cond_Y_given_X <- prop.table(joint_counts, margin = 1)
+
+joint_counts
+round(joint_prob, 4)
+round(P_X, 4)
+round(P_Y, 4)
+round(cond_Y_given_X, 4)
+
+```
+
+
+# Task 9
+
+a. 1/10e^-y/10, yes, the probability density function of Exponential distribution
+
+b. 10
+
+
+```{R}
+f_Y <- function(y) {
+  (1/10) * exp(-y / 10)  
+}
+
+curve(f_Y(x), from = 0, to = 50, col = "blue", lwd = 2,
+      main = "Marginal Density f_Y(y)",
+      xlab = "y", ylab = "Density")
+
+integrate(f_Y, lower = 0, upper = Inf)
+
+lambda <- 1 / 10
+E_Y <- 1 / lambda
+E_Y
+```
+
+
+# Task 10
+
+a. 2
+
+b. 2xe^-x^2
+
+c. 1/x
+
+
+```{R}
+
+f_integrand <- function(x) x * exp(-x^2)
+integrate(f_integrand, lower = 0, upper = Inf)$value   
+c <- 1 / (integrate(f_integrand, 0, Inf)$value)        
+c
+
+fX <- function(x) 2 * x * exp(-x^2)
+integrate(fX, 0, Inf)$value   
+
+
+fY_given_X <- function(y, x) {
+  ifelse((y >= 0 & y <= x), 1/x, 0)
+}
+
+
+set.seed(1)
+n <- 1e5
+
+u <- runif(n)
+Xsim <- sqrt(-log(1-u))
+
+Ysim <- runif(n, min = 0, max = Xsim)
+
+
+mean(Xsim)             
+mean(Ysim)          
+
+idx <- which(Xsim > 1 & Xsim <= 1.1)
+hist(Ysim[idx], breaks = 30, main = "Y | X in (1,1.1)", xlab = "y") 
+
+
+```
+
+
+# Task 11
+
+```{R}
+X <- c(-1, 0, 1)
+Y <- c(1, 0, 1)
+P <- c(1/4, 1/2, 1/4)
+
+EX <- sum(X * P)
+EY <- sum(Y * P)
+
+COV_XY <- sum((X - EX) * (Y - EY) * P)
+print(paste("Covariance = ", COV_XY))
+
+PX <- tapply(P, X, sum)
+PY <- tapply(P, Y, sum)
+
+
+data.frame(X, Y, P, PX = PX[as.character(X)], PY = PY[as.character(Y)], 
+           PX_PY = PX[as.character(X)] * PY[as.character(Y)])
+
+
+```
+
+# Task 12
+
+a. 2
+
+b. 0.0056
+
+c. It is roughly normal, given the large sample size of 60
+
+d. 1
+
+e. 0.9963
+
+
+```{R}
+a <- 1
+b <- 3
+E_Y <- (a + b) / 2
+E_Y
+
+n <- 60
+Var_Y <- (b - a)^2 / 12
+Var_Ybar <- Var_Y / n
+Var_Ybar
+
+mu <- E_Y
+sigma <- sqrt(Var_Ybar)
+
+p_between <- pnorm(2.5, mean = mu, sd = sigma) - pnorm(1.5, mean = mu, sd = sigma)
+p_between
+
+p_exceed <- pnorm(2.2, mean = mu, sd = sigma)
+p_exceed
+
+```
+
+
+
+
+# Task 13
+
+a. 0.0015
+
+b. 0.1269
+
+c. 0.0005 for a and 0.1275 for b. The normal approximation works for b as it is close to the exact value but it doesn't work for a, as it is greater by 3 times, so it doesn't work for a as it is too small.
+
+
+```{R}
+n <- 20; p <- 0.4
+mu <- n*p
+sigma <- sqrt(n*p*(1-p))
+
+p_norm_a <- pnorm(1.5, mean = mu, sd = sigma)
+p_norm_a    
+
+
+p_norm_b <- 1 - pnorm(10.5, mean = mu, sd = sigma)
+p_norm_b  
+
+p_exact_a <- pbinom(1, size = n, prob = p)
+p_exact_a    
+
+p_exact_b <- 1 - pbinom(10, size = n, prob = p)
+p_exact_b    
+
+```
+
+
+# Task 14
+
+a. (-1.1478, 6.919)
+
+b. (-0.6774, 2.4084) 
+
+c. The Lead Confidence Interval gives a range where it is 99% confident that the true mean of the lead level in Crystal Lake Manors water is. Similarly, the Copper Confidence Interval means the same thing, just in terms of where the true mean level of the copper level in Crystal Lake Manors water is.
+
+d. The phrase "99% confident" means that if the sampling was repeated multiple times, 99% of the confidence intervals would contain the true mean.
+
+```{R}
+table <- data.frame(
+  Lead = c(1.32, 0, 13.1, .919, .657, 3.0, 1.32, 4.09, 4.45, 0),
+  Copper = c(5.08, .279, .3200, .904, .221, .283, .475, .130, .220, .743)
+)
+
+table
+
+lead <- c(1.32, 0, 13.1, .919, .657, 3.0, 1.32, 4.09, 4.45, 0)
+copper <- c(5.08, .279, .3200, .904, .221, .283, .475, .130, .220, .743)
+
+mean(lead)
+sd(lead)
+
+mean(copper)
+sd(copper)
+
+n <- length(lead)
+
+conf_level <- 0.99
+alpha <- 1 - conf_level
+
+
+t_crit <- qt(1 - alpha/2, df = n-1)
+
+lead_mean <- mean(lead)
+lead_sd <- sd(lead)
+lead_se <- lead_sd / sqrt(n)
+lead_CI <- lead_mean + c(-1, 1) * t_crit * lead_se
+print(paste("mean lead CI", lead_CI))
+
+
+copper_mean <- mean(copper)
+copper_sd <- sd(copper)
+copper_se <- copper_sd / sqrt(n)
+copper_CI <- copper_mean + c(-1, 1) * t_crit * copper_se
+print(paste("mean copper CI", copper_CI))
+
+
+```
+
+# Task 15
+
+(156.82, 239.18)
+
+```{R}
+st_joseph <- c(782, 965, 948, 1181, 1414, 1633, 1852)
+iowa <- c(593, 672, 750, 988, 1226, 1462, 1698)
+
+diffs <- st_joseph - iowa
+
+mean_diff <- mean(diffs)
+sd_diff <- sd(diffs)
+n <- length(diffs)
+
+error_margin <- qt(0.975, df = n - 1) * sd_diff / sqrt(n)
+lower <- mean_diff - error_margin
+upper <- mean_diff + error_margin
+
+mean_diff
+c(lower, upper)
+```
+
+
+# Task 16
+
+a. (-58.8992, -18.919)
+
+b. The days chosen need to be random, each Day value must be paired with the same day Night value, and the differences between Night and Day should be normally distributed
+
+c. Considering that the entire confidence interval is negative and below zero, the mean Day level is less than the mean Night level, which means that the mean diazinon residue in the air during the night is much higher than it is during the day
+
+
+```{R}
+Date <- c(11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21)
+Day <- c(5.4, 2.7, 34.2, 19.9, 2.4, 7.0, 6.1, 7.7, 18.4, 27.1, 16.9)
+Night <- c(24.3, 16.5, 47.2, 12.4, 24.0, 21.6, 104.3, 96.9, 105.3, 78.7, 44.6)
+
+water <-  data.frame(Date, Day, Night)
+
+print(water)
+
+mean(Day)
+mean(Night)
+
+t.test(Day, Night, paired = TRUE, conf.level = 0.90)
+
+```

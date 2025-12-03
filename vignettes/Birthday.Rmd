@@ -1,0 +1,130 @@
+---
+title: "Birthday"
+output: rmarkdown::html_vignette  
+vignette: >
+  %\VignetteIndexEntry{Birthday}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(MATH4753MORRISCHIFALL)
+```
+
+
+1. # The Birthday Problem
+
+We want the probability that in a group of size $n$, at least two people share
+the same birthday 
+
+First,
+
+$$
+P(\text{at least two share}) = 1 - P(\text{all birthdays distinct}).
+$$
+
+The probability that all birthdays are distinct is
+
+$$
+P(\text{all distinct})
+= \frac{365}{365} \cdot \frac{364}{365} \cdot \frac{363}{365} \cdots \frac{365 - (n-1)}{365}.
+$$
+
+This simplifies to
+
+$$
+P(\text{all distinct})
+= \frac{365!}{(365-n)! \, 365^n}.
+$$
+
+Therefore, the desired probability is
+
+$$
+P(\text{at least two share}) = 1 - \frac{365!}{(365-n)! \, 365^n}.
+$$
+
+2. # Reformulation Using `lfactorial` and `lchoose`
+
+We can also express the probability using log-factorial and log-choose
+functions in R.
+
+From the derivation, we know
+
+$$
+\log P(\text{all distinct}) =
+\operatorname{lfactorial}(365) - \operatorname{lfactorial}(365-n) - n \log(365).
+$$
+
+Therefore,
+
+$$
+P(\text{all distinct}) =
+\exp\!\Big( \operatorname{lfactorial}(365) - \operatorname{lfactorial}(365-n) - n \log(365) \Big).
+$$
+
+So the probability that at least two people share a birthday is
+
+$$
+P(\text{at least two share}) =
+1 - \exp\!\Big( \operatorname{lfactorial}(365) - \operatorname{lfactorial}(365-n) - n \log(365) \Big).
+$$
+
+
+So in log form:
+
+$$
+\log P(\text{all distinct}) =
+\operatorname{lchoose}(365,n) + \operatorname{lfactorial}(n) - n\log(365).
+$$
+
+---
+
+```{r}
+# Example: compute probability for n = 23
+n <- 20
+
+p_all_distinct <- exp(lfactorial(365) - lfactorial(365 - n) - n * log(365))
+p_share <- 1 - p_all_distinct
+
+round(p_all_distinct, 4)
+p_share
+```
+
+
+
+```{R}
+
+# log form using lchoose and lfactorial
+log_p_all_distinct <- lchoose(365, n) + lfactorial(n) - n * log(365)
+
+# convert back from log
+p_all_distinct <- exp(log_p_all_distinct)
+
+# probability at least two share a birthday
+p_share <- 1 - p_all_distinct
+
+p_all_distinct
+p_share
+
+```
+
+
+
+3. 1 - exp(lchoose(365, x) + lfactorial(x) - x * log(365))
+
+
+4. 
+
+```{R}
+birthday(20:25)
+```
+
+
+
